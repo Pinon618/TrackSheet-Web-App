@@ -1,18 +1,12 @@
 import mongoose from "mongoose";
+import { getEnv, requireEnv } from "./env";
 
-const MONGODB_URI = process.env["MONGODB_URI"];
-const IS_DEV = process.env["NODE_ENV"] !== "production";
-
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is not defined in environment variables");
-}
-
-// Narrowed to string after the guard above
-const uri: string = MONGODB_URI;
+const MONGODB_URI = requireEnv("MONGODB_URI");
+const IS_DEV = getEnv("NODE_ENV") !== "production";
 
 export async function connectDB(): Promise<void> {
   try {
-    await mongoose.connect(uri, {
+    await mongoose.connect(MONGODB_URI, {
       serverSelectionTimeoutMS: 8000,
       connectTimeoutMS: 8000,
       // Bun on Windows doesn't trust the Atlas CA bundle.

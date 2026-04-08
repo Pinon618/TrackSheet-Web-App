@@ -1,0 +1,13 @@
+.badge {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.paid    { background: #14532d; color: #4ade80; }
+.partial { background: #451a03; color: #fb923c; }
+.due     { background: #450a0a; color: #f87171; }

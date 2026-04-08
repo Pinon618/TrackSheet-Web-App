@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
+    "seed:admin": "bun run src/scripts/seedAdmin.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@tracksheet/shared": "workspace:*",
+    "better-auth": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.1",
     "express": "^4.19.0",

@@ -21,8 +21,8 @@ export function errorHandler(
   // Zod validation errors
   if (err instanceof ZodError) {
     res.status(400).json({
-      status: "error",
-      message: "Validation failed",
+      success: false,
+      error: "Validation failed",
       errors: err.errors.map((e) => ({
         field: e.path.join("."),
         message: e.message,
@@ -34,8 +34,8 @@ export function errorHandler(
   // Known application errors
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
-      status: "error",
-      message: err.message,
+      success: false,
+      error: err.message,
     });
     return;
   }
@@ -43,7 +43,7 @@ export function errorHandler(
   // Unknown errors — don't leak internals
   console.error("[Unhandled error]", err);
   res.status(500).json({
-    status: "error",
-    message: "Internal server error",
+    success: false,
+    error: "Internal server error",
   });
 }

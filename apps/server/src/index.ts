@@ -1,18 +1,40 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./auth";
 import { connectDB } from "./db";
+import { getEnv, getEnvList } from "./env";
 import { errorHandler } from "./middlewares/errorHandler";
+import { asyncHandler } from "./lib/asyncHandler";
+import { requireAuth } from "./middlewares/requireAuth";
 import orderRoutes    from "./routes/order.routes";
 import paymentRoutes  from "./routes/payment.routes";
 import supplierRoutes from "./routes/supplier.routes";
 import userRoutes     from "./routes/user.routes";
 
 const app  = express();
-const PORT = process.env["PORT"] ?? 3001;
+const PORT = getEnv("PORT") ?? 3001;
+const CLIENT_ORIGINS = getEnvList("CLIENT_ORIGIN", ["http://localhost:5173"]);
+const LOCAL_DEV_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/;
+const authHandler = toNodeHandler(auth);
 
 // ── Global middleware ────────────────────────────────────────────────────────
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || CLIENT_ORIGINS.includes(origin) || LOCAL_DEV_ORIGIN.test(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`CORS origin not allowed: ${origin}`));
+  },
+  credentials: true,
+}));
+
+app.all("/api/auth/*", (req, res, next) => {
+  authHandler(req, res).catch(next);
+});
+
 app.use(express.json());
 
 // ── Routes ───────────────────────────────────────────────────────────────────
@@ -20,10 +42,10 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api/v1/orders",    orderRoutes);
-app.use("/api/v1/payments",  paymentRoutes);
-app.use("/api/v1/suppliers", supplierRoutes);
-app.use("/api/v1/users",     userRoutes);
+app.use("/api/v1/orders",    asyncHandler(requireAuth), orderRoutes);
+app.use("/api/v1/payments",  asyncHandler(requireAuth), paymentRoutes);
+app.use("/api/v1/suppliers", asyncHandler(requireAuth), supplierRoutes);
+app.use("/api/v1/users",     asyncHandler(requireAuth), userRoutes);
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((_req, res) => {

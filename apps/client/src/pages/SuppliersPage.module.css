@@ -1,0 +1,38 @@
+.page { display: flex; flex-direction: column; gap: 1.25rem; }
+.header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+.heading { font-size: 1.5rem; font-weight: 700; margin: 0; color: #e2e8f0; }
+.form { background: #1a1a2a; border: 1px solid #2d2d45; border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.formTitle { font-size: 0.95rem; font-weight: 600; margin: 0; color: #94a3b8; }
+.row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; }
+.label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
+.input {
+  background: #1e1e30;
+  border: 1px solid #2d2d45;
+  border-radius: 6px;
+  color: #e2e8f0;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.input::placeholder { color: #475569; }
+.input:focus { border-color: #6c8bff; }
+.errorBanner { background: #450a0a; border: 1px solid #f8717140; color: #fca5a5; padding: 0.65rem 0.9rem; border-radius: 6px; font-size: 0.875rem; }
+.formActions { display: flex; gap: 0.5rem; }
+.btnPrimary   { background: #6c8bff; color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+.btnPrimary:hover { background: #5a79f0; }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btnSecondary { background: #1e1e30; color: #94a3b8; border: 1px solid #2d2d45; padding: 0.45rem 0.75rem; border-radius: 6px; font-size: 0.875rem; cursor: pointer; }
+.table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.table th { text-align: left; padding: 0.5rem 0.75rem; color: #64748b; font-weight: 500; border-bottom: 1px solid #2d2d45; }
+.table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #1a1a2a; }
+.table tr:hover td { background: #1e1e30; }
+.name { font-weight: 600; color: #e2e8f0; }
+.actions { display: flex; gap: 0.4rem; }
+.btnEdit   { background: transparent; color: #6c8bff; border: 1px solid #6c8bff40; padding: 0.2rem 0.6rem; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
+.btnDelete { background: transparent; color: #f87171; border: 1px solid #f8717140; padding: 0.2rem 0.6rem; border-radius: 5px; font-size: 0.8rem; cursor: pointer; }
+.btnEdit:hover   { background: #6c8bff1a; }
+.btnDelete:hover { background: #f871711a; }
+.btnDelete:disabled { opacity: 0.4; cursor: not-allowed; }
+.muted { color: #475569; font-size: 0.875rem; }

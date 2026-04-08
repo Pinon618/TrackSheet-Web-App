@@ -1,0 +1,61 @@
+.page   { display: flex; flex-direction: column; gap: 1.1rem; }
+.header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+.heading { font-size: 1.5rem; font-weight: 700; margin: 0; color: #e2e8f0; }
+.filterRow { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.panel     { background: #1a1a2a; border: 1px solid #2d2d45; border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; }
+.panelTitle { font-size: 0.875rem; font-weight: 600; margin: 0; color: #94a3b8; }
+.editRow    { background: #12121e; }
+.editForm   { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.editActions { display: flex; gap: 0.5rem; }
+
+.formGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.6rem; }
+.formField { display: flex; flex-direction: column; gap: 0.25rem; }
+.formField.wide { grid-column: 1 / -1; }
+.fieldLabel  { font-size: 0.75rem; font-weight: 500; color: #94a3b8; }
+.fieldError  { font-size: 0.7rem; color: #f87171; }
+
+.input {
+  background: #1e1e30;
+  border: 1px solid #2d2d45;
+  border-radius: 6px;
+  color: #e2e8f0;
+  padding: 0.42rem 0.65rem;
+  font-size: 0.82rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.input::placeholder { color: #475569; }
+.input:focus { border-color: #6c8bff; }
+
+.btnPrimary  { background: #6c8bff; color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btnPrimary:hover { background: #5a79f0; }
+.btnSubmit   { background: #6c8bff; color: #fff; border: none; padding: 0.42rem 1rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; align-self: flex-start; }
+.btnSubmit:hover { background: #5a79f0; }
+.btnSubmit:disabled { opacity: 0.5; cursor: not-allowed; }
+.btnSecondary { background: #1e1e30; color: #94a3b8; border: 1px solid #2d2d45; padding: 0.42rem 0.75rem; border-radius: 6px; font-size: 0.82rem; cursor: pointer; }
+.btnSecondary:hover { border-color: #475569; color: #e2e8f0; }
+
+.errorBanner { background: #450a0a; border: 1px solid #ef444440; color: #fca5a5; padding: 0.65rem 1rem; border-radius: 8px; font-size: 0.875rem; }
+
+.tableWrap { overflow-x: auto; border: 1px solid #2d2d45; border-radius: 10px; }
+.table { width: 100%; border-collapse: collapse; font-size: 0.82rem; white-space: nowrap; }
+.table th { text-align: left; padding: 0.45rem 0.65rem; color: #475569; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #2d2d45; background: #12121e; }
+.table td { padding: 0.55rem 0.65rem; border-bottom: 1px solid #1a1a2a; vertical-align: middle; }
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover td { background: #1e1e30; }
+
+.invoiceLink { color: #6c8bff; text-decoration: none; }
+.invoiceLink:hover { text-decoration: underline; }
+.amount { font-variant-numeric: tabular-nums; color: #4ade80; font-weight: 600; }
+
+.actions  { display: flex; gap: 0.35rem; }
+.btnEdit   { background: transparent; color: #6c8bff; border: 1px solid #6c8bff40; padding: 0.18rem 0.55rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+.btnDelete { background: transparent; color: #f87171; border: 1px solid #f8717140; padding: 0.18rem 0.55rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+.btnEdit:hover   { background: #6c8bff1a; }
+.btnDelete:hover { background: #f871711a; }
+.btnDelete:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.empty { padding: 2rem; text-align: center; color: #475569; }
+.meta  { color: #475569; font-size: 0.78rem; }

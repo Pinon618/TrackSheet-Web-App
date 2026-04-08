@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { validate } from "../middlewares/validate";
+import { asyncHandler } from "../lib/asyncHandler";
 import { CreateUserSchema, UpdateUserSchema } from "@tracksheet/shared";
 import {
   getUsers,
@@ -11,10 +12,10 @@ import {
 
 const router = Router();
 
-router.get(  "/",        getUsers);
-router.get(  "/uid/:uid", getUserByUid);  // must be before /:id to avoid conflict
-router.get(  "/:id",     getUser);
-router.post( "/",        validate("body", CreateUserSchema), createUser);
-router.patch("/:id",     validate("body", UpdateUserSchema), updateUser);
+router.get(  "/",        asyncHandler(getUsers));
+router.get(  "/uid/:uid", asyncHandler(getUserByUid));  // must be before /:id to avoid conflict
+router.get(  "/:id",     asyncHandler(getUser));
+router.post( "/",        validate("body", CreateUserSchema), asyncHandler(createUser));
+router.patch("/:id",     validate("body", UpdateUserSchema), asyncHandler(updateUser));
 
 export default router;

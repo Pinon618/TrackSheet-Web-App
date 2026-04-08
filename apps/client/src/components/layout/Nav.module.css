@@ -1,0 +1,109 @@
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #1a1a2e;
+  padding: 0 1.5rem;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.04em;
+  margin-right: 2rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand span {
+  color: #6c8bff;
+}
+
+.links {
+  display: flex;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.email {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #cbd5e1;
+  font-size: 0.8rem;
+}
+
+.signOut {
+  border: 1px solid #475569;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  background: transparent;
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.signOut:hover {
+  border-color: #7dd3fc;
+  color: #7dd3fc;
+}
+
+.link {
+  display: block;
+  padding: 0.4rem 0.85rem;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.link:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.link.active {
+  color: #6c8bff;
+  background: rgba(108, 139, 255, 0.12);
+}
+
+@media (max-width: 640px) {
+  .nav {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .brand {
+    margin-right: 0;
+  }
+
+  .links {
+    flex-wrap: wrap;
+  }
+
+  .session {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

@@ -1,0 +1,58 @@
+.page { display: flex; flex-direction: column; gap: 1.75rem; }
+.heading { font-size: 1.5rem; font-weight: 700; margin: 0; color: #e2e8f0; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.85rem;
+}
+
+.card {
+  background: #1e1e30;
+  border: 1px solid #2d2d45;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.card.green { border-color: #22c55e40; background: #0e1e14; }
+.card.red   { border-color: #ef444440; background: #1e0e0e; }
+
+.cardLabel { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+.cardValue { font-size: 1.35rem; font-weight: 700; color: #e2e8f0; }
+.card.green .cardValue { color: #4ade80; }
+.card.red   .cardValue { color: #f87171; }
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+@media (max-width: 900px) { .columns { grid-template-columns: 1fr; } }
+
+.section {
+  background: #1a1a2a;
+  border: 1px solid #2d2d45;
+  border-radius: 10px;
+  padding: 1.25rem;
+  overflow: hidden;
+}
+.sectionHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; }
+.sectionTitle  { font-size: 0.875rem; font-weight: 600; margin: 0; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; }
+.viewAll { font-size: 0.8rem; color: #6c8bff; text-decoration: none; }
+.viewAll:hover { text-decoration: underline; }
+
+.table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.table th { text-align: left; padding: 0.4rem 0.6rem; color: #475569; font-weight: 500; border-bottom: 1px solid #2d2d45; }
+.table td { padding: 0.55rem 0.6rem; border-bottom: 1px solid #12121e; }
+.table tbody tr:last-child td { border-bottom: none; }
+
+.clickable { cursor: pointer; transition: background 0.12s; }
+.clickable:hover td { background: #12121e; }
+
+.invoice      { color: #6c8bff; font-weight: 600; }
+.supplierName { font-weight: 600; color: #e2e8f0; }
+.paid { color: #4ade80; }
+.due  { color: #f87171; font-weight: 600; }
+.empty { color: #475569; padding: 1.25rem 0.6rem; text-align: center; }

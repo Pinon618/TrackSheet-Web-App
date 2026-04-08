@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { validate } from "../middlewares/validate";
+import { asyncHandler } from "../lib/asyncHandler";
 import { CreateOrderSchema, UpdateOrderSchema } from "@tracksheet/shared";
 import {
   getOrders,
@@ -11,10 +12,10 @@ import {
 
 const router = Router();
 
-router.get(   "/",    getOrders);
-router.get(   "/:id", getOrder);
-router.post(  "/",    validate("body", CreateOrderSchema), createOrder);
-router.patch( "/:id", validate("body", UpdateOrderSchema), updateOrder);
-router.delete("/:id", deleteOrder);
+router.get(   "/",    asyncHandler(getOrders));
+router.get(   "/:id", asyncHandler(getOrder));
+router.post(  "/",    validate("body", CreateOrderSchema), asyncHandler(createOrder));
+router.patch( "/:id", validate("body", UpdateOrderSchema), asyncHandler(updateOrder));
+router.delete("/:id", asyncHandler(deleteOrder));
 
 export default router;
