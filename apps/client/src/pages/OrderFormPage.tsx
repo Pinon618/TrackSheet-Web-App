@@ -2,32 +2,52 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getOrder, createOrder, updateOrder, orderKeys } from "../api/orders";
+import { getBrands, brandKeys } from "../api/brands";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
-import { calcTotalUnits } from "../api/orderCalcClient";
+import { calcManualUnits, calcPackBoxes } from "../api/orderCalcClient";
 import { ApiError, toFieldErrors } from "../api/types";
 import { useToast } from "../context/ToastContext";
 import { CreateOrderSchema } from "@tracksheet/shared";
-import type { CreateOrderInput, Supplier } from "@tracksheet/shared";
+import type { Brand, CreateOrderInput, Supplier } from "@tracksheet/shared";
 import styles from "./OrderFormPage.module.css";
 
 type PackKey = keyof CreateOrderInput["packs"];
+type PackQuantityField = "packs" | "units";
 type FieldErrors = Partial<Record<string, string>>;
 
-const PACK_SIZES: { key: PackKey; label: string; mult: number }[] = [
-  { key: "p1", label: "1-Pack", mult: 1 },
-  { key: "p2", label: "2-Pack", mult: 2 },
-  { key: "p3", label: "3-Pack", mult: 3 },
-  { key: "p4", label: "4-Pack", mult: 4 },
-  { key: "p6", label: "6-Pack", mult: 6 },
+const PACK_SIZES: { key: PackKey; label: string }[] = [
+  { key: "p1", label: "1-Pack" },
+  { key: "p2", label: "2-Pack" },
+  { key: "p3", label: "3-Pack" },
+  { key: "p4", label: "4-Pack" },
+  { key: "p5", label: "5-Pack" },
+  { key: "p6", label: "6-Pack" },
 ];
+
+const EMPTY_PACK_QUANTITIES = { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 };
+
+function unitsFromBoxes(packs: CreateOrderInput["packs"]): CreateOrderInput["units"] {
+  return {
+    p1: packs.p1,
+    p2: packs.p2,
+    p3: packs.p3,
+    p4: packs.p4,
+    p5: packs.p5,
+    p6: packs.p6,
+  };
+}
 
 const EMPTY: CreateOrderInput = {
   invoiceSerial: "",
   orderDate:     new Date(),
   supplier:      "",
-  packs:         { p1: 0, p2: 0, p3: 0, p4: 0, p6: 0 },
+  brand:         "",
+  packs:         EMPTY_PACK_QUANTITIES,
+  units:         EMPTY_PACK_QUANTITIES,
+  totalBoxes:    0,
   unitPrice:     0,
   shippingCost:  0,
+  packagingCost: 0,
   previousDue:   0,
   notes:         "",
 };
@@ -42,6 +62,10 @@ export default function OrderFormPage() {
   const [form, setForm]       = useState<CreateOrderInput>(EMPTY);
   const [errors, setErrors]   = useState<FieldErrors>({});
 
+  function safeNumber(value: number | undefined): number {
+    return Number.isFinite(value) ? value : 0;
+  }
+
   // ── Prefill on edit ──────────────────────────────────────────────────────
   const { data: existing, isLoading: loadingExisting } = useQuery({
     queryKey: orderKeys.detail(id ?? ""),
@@ -54,16 +78,26 @@ export default function OrderFormPage() {
     queryFn:  () => getSuppliers(),
   });
 
+  const { data: brands } = useQuery<Brand[]>({
+    queryKey: brandKeys.list(),
+    queryFn:  () => getBrands(),
+  });
+
   useEffect(() => {
     if (existing) {
+      const packs = { ...EMPTY_PACK_QUANTITIES, ...existing.packs };
       setForm({
         invoiceSerial: existing.invoiceSerial,
         orderDate:     new Date(existing.orderDate),
         supplier:      existing.supplier,
-        packs:         existing.packs,
-        unitPrice:     existing.unitPrice,
-        shippingCost:  existing.shippingCost,
-        previousDue:   existing.previousDue,
+        brand:         existing.brand,
+        packs,
+        units:         existing.units ? { ...EMPTY_PACK_QUANTITIES, ...existing.units } : unitsFromBoxes(packs),
+        totalBoxes:    existing.totalBoxes ?? calcPackBoxes(existing.packs),
+        unitPrice:     existing.unitPrice ?? 0,
+        shippingCost:  existing.shippingCost ?? 0,
+        packagingCost: existing.packagingCost ?? 0,
+        previousDue:   existing.previousDue ?? 0,
         notes:         existing.notes ?? "",
       });
     }
@@ -88,22 +122,49 @@ export default function OrderFormPage() {
   });
 
   // ── Live calcs ────────────────────────────────────────────────────────────
-  const totalUnits   = calcTotalUnits(form.packs);
-  const productTotal = totalUnits * form.unitPrice;
-  const grandTotal   = productTotal + form.shippingCost + form.previousDue;
+  const totalUnits   = calcManualUnits(form.units, form.packs);
+  const totalBoxes   = calcPackBoxes(form.packs);
+  const unitPrice     = safeNumber(form.unitPrice);
+  const shippingCost  = safeNumber(form.shippingCost);
+  const packagingCost = safeNumber(form.packagingCost);
+  const previousDue   = safeNumber(form.previousDue);
+  const productTotal  = totalUnits * unitPrice;
+  const grandTotal    = productTotal + shippingCost + packagingCost + previousDue;
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  function num(v: string) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function num(v: string) {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function int(v: string) {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  }
+
+  function handleNumberFieldChange<K extends keyof CreateOrderInput>(
+    key: K,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const n = num(e.currentTarget.value);
+    e.currentTarget.value = String(n);
+    setField(key, n as CreateOrderInput[K]);
+  }
 
   function setField<K extends keyof CreateOrderInput>(key: K, val: CreateOrderInput[K]) {
     setForm((f) => ({ ...f, [key]: val }));
     setErrors((e) => ({ ...e, [key]: undefined }));
   }
 
-  function handlePackChange(key: PackKey, val: string) {
-    const n = Math.max(0, parseInt(val) || 0);
-    setForm((f) => ({ ...f, packs: { ...f.packs, [key]: n } }));
-    setErrors((e) => ({ ...e, [`packs.${key}`]: undefined }));
+  function handlePackChange(
+    field: PackQuantityField,
+    key: PackKey,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const n = int(e.currentTarget.value);
+    e.currentTarget.value = String(n);
+    setForm((f) => ({ ...f, [field]: { ...f[field], [key]: n } }));
+    setErrors((e) => ({ ...e, [`${field}.${key}`]: undefined }));
   }
 
   // ── Zod validation on submit ──────────────────────────────────────────────
@@ -111,7 +172,14 @@ export default function OrderFormPage() {
     e.preventDefault();
     setErrors({});
 
-    const result = CreateOrderSchema.safeParse(form);
+    const result = CreateOrderSchema.safeParse({
+      ...form,
+      unitPrice,
+      shippingCost,
+      packagingCost,
+      previousDue,
+      totalBoxes,
+    });
 
     if (!result.success) {
       const fieldErrors: FieldErrors = {};
@@ -145,7 +213,7 @@ export default function OrderFormPage() {
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
 
         {/* ── Identity ──────────────────────────────────────────────────── */}
-        <div className={styles.row3}>
+        <div className={styles.row4}>
           <Field label="Invoice Serial *" error={errors["invoiceSerial"]}>
             <input
               className={styles.input}
@@ -175,63 +243,107 @@ export default function OrderFormPage() {
               ))}
             </select>
           </Field>
+          <Field label="Brand *" error={errors["brand"]}>
+            <select
+              className={styles.input}
+              value={form.brand}
+              onChange={(e) => setField("brand", e.target.value)}
+            >
+              <option value="">Select brand…</option>
+              {brands?.map((b) => (
+                <option key={b._id} value={b.name}>{b.name}</option>
+              ))}
+            </select>
+          </Field>
         </div>
 
         {/* ── Pack quantities ───────────────────────────────────────────── */}
         <fieldset className={styles.fieldset}>
-          <legend className={styles.legend}>Pack Quantities (boxes)</legend>
+          <legend className={styles.legend}>Pack Quantities</legend>
           <div className={styles.packRow}>
-            {PACK_SIZES.map(({ key, label, mult }) => {
-              const boxes = form.packs[key];
+            {PACK_SIZES.map(({ key, label }) => {
+              const boxes = form.packs[key] ?? 0;
+              const units = form.units[key] ?? 0;
               return (
                 <div key={key} className={styles.packCol}>
                   <label className={styles.packLabel}>{label}</label>
-                  <input
-                    type="number"
-                    className={styles.input}
-                    value={boxes}
-                    min={0}
-                    onChange={(e) => handlePackChange(key, e.target.value)}
-                  />
-                  <span className={styles.packUnits}>
-                    {boxes * mult} units
-                  </span>
+                  <label className={styles.packInputGroup}>
+                    <span className={styles.packInputLabel}>Units</span>
+                    <input
+                      type="number"
+                      className={styles.input}
+                      value={units}
+                      min={0}
+                      onChange={(e) => handlePackChange("units", key, e)}
+                    />
+                  </label>
+                  <label className={styles.packInputGroup}>
+                    <span className={styles.packInputLabel}>Boxes</span>
+                    <input
+                      type="number"
+                      className={styles.input}
+                      value={boxes}
+                      min={0}
+                      onChange={(e) => handlePackChange("packs", key, e)}
+                    />
+                  </label>
                 </div>
               );
             })}
           </div>
+          <div className={styles.totalBoxesRow}>
+            <Field label="Total Boxes" error={errors["totalBoxes"]}>
+              <input
+                type="number"
+                className={styles.input}
+                value={totalBoxes}
+                min={0}
+                readOnly
+              />
+            </Field>
+          </div>
         </fieldset>
 
         {/* ── Pricing ───────────────────────────────────────────────────── */}
-        <div className={styles.row3}>
+        <div className={styles.row4}>
           <Field label="Unit Price (৳) *" error={errors["unitPrice"]}>
             <input
               type="number"
               className={styles.input}
-              value={form.unitPrice}
+              value={unitPrice}
               min={0}
               step="0.01"
-              onChange={(e) => setField("unitPrice", num(e.target.value))}
+              onChange={(e) => handleNumberFieldChange("unitPrice", e)}
             />
           </Field>
           <Field label="Shipping Cost (৳)" error={errors["shippingCost"]}>
             <input
               type="number"
               className={styles.input}
-              value={form.shippingCost}
+              value={shippingCost}
               min={0}
               step="0.01"
-              onChange={(e) => setField("shippingCost", num(e.target.value))}
+              onChange={(e) => handleNumberFieldChange("shippingCost", e)}
+            />
+          </Field>
+          <Field label="Packaging Cost (৳)" error={errors["packagingCost"]}>
+            <input
+              type="number"
+              className={styles.input}
+              value={packagingCost}
+              min={0}
+              step="0.01"
+              onChange={(e) => handleNumberFieldChange("packagingCost", e)}
             />
           </Field>
           <Field label="Previous Due (৳)" error={errors["previousDue"]}>
             <input
               type="number"
               className={styles.input}
-              value={form.previousDue}
+              value={previousDue}
               min={0}
               step="0.01"
-              onChange={(e) => setField("previousDue", num(e.target.value))}
+              onChange={(e) => handleNumberFieldChange("previousDue", e)}
             />
           </Field>
         </div>

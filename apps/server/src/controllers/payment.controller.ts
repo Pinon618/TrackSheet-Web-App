@@ -15,8 +15,10 @@ async function syncOrderTotals(invoiceSerial: string): Promise<void> {
 
   const calc = calcOrderFields({
     packs:        order.packs,
+    units:        order.units,
     unitPrice:    order.unitPrice,
     shippingCost: order.shippingCost,
+    packagingCost: order.packagingCost,
     previousDue:  order.previousDue,
     totalPaid,
   });

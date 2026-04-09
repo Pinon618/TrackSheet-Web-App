@@ -10,6 +10,7 @@ import { asyncHandler } from "./lib/asyncHandler";
 import { requireAuth } from "./middlewares/requireAuth";
 import orderRoutes    from "./routes/order.routes";
 import paymentRoutes  from "./routes/payment.routes";
+import brandRoutes    from "./routes/brand.routes";
 import supplierRoutes from "./routes/supplier.routes";
 import userRoutes     from "./routes/user.routes";
 
@@ -44,6 +45,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/v1/orders",    asyncHandler(requireAuth), orderRoutes);
 app.use("/api/v1/payments",  asyncHandler(requireAuth), paymentRoutes);
+app.use("/api/v1/brands",    asyncHandler(requireAuth), brandRoutes);
 app.use("/api/v1/suppliers", asyncHandler(requireAuth), supplierRoutes);
 app.use("/api/v1/users",     asyncHandler(requireAuth), userRoutes);
 

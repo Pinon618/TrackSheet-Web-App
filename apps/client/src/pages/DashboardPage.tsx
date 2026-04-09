@@ -5,7 +5,7 @@ import { getOrders, orderKeys } from "../api/orders";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
 import { StatusBadge } from "../components/ui/Badge";
 import { SkeletonCard, SkeletonRow } from "../components/ui/Skeleton";
-import { calcTotalUnits } from "../api/orderCalcClient";
+import { calcTotalBoxes, calcTotalUnits } from "../api/orderCalcClient";
 import type { Supplier } from "@tracksheet/shared";
 import styles from "./DashboardPage.module.css";
 
@@ -30,21 +30,23 @@ export default function DashboardPage() {
     let totalUnits = 0;
     let productValue = 0;
     let shipping = 0;
+    let packaging = 0;
     let grandTotal = 0;
     let paid = 0;
     let balanceDue = 0;
 
     for (const o of orders) {
-      totalBoxes  += o.packs.p1 + o.packs.p2 + o.packs.p3 + o.packs.p4 + o.packs.p6;
-      totalUnits  += calcTotalUnits(o.packs);
+      totalBoxes  += calcTotalBoxes(o.packs, o.totalBoxes);
+      totalUnits  += calcTotalUnits(o.packs, o.units);
       productValue += o.productTotal;
       shipping    += o.shippingCost;
+      packaging   += o.packagingCost ?? 0;
       grandTotal  += o.grandTotal;
       paid        += o.totalPaid;
       balanceDue  += o.balanceDue;
     }
 
-    return { totalBoxes, totalUnits, productValue, shipping, grandTotal, paid, balanceDue };
+    return { totalBoxes, totalUnits, productValue, shipping, packaging, grandTotal, paid, balanceDue };
   }, [orders]);
 
   // ── Supplier breakdown ─────────────────────────────────────────────────────
@@ -87,6 +89,7 @@ export default function DashboardPage() {
             <StatCard label="Total Units"        value={stats.totalUnits} />
             <StatCard label="Product Value"      value={fmt(stats.productValue)} />
             <StatCard label="Total Shipping"     value={fmt(stats.shipping)} />
+            <StatCard label="Total Packaging"    value={fmt(stats.packaging)} />
             <StatCard label="Grand Total"        value={fmt(stats.grandTotal)} />
             <StatCard label="Total Paid"         value={fmt(stats.paid)}       accent="green" />
             <StatCard label="Balance Due"        value={fmt(stats.balanceDue)} accent={stats.balanceDue > 0 ? "red" : undefined} />

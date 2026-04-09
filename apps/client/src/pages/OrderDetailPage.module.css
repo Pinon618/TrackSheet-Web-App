@@ -23,7 +23,7 @@
 .fieldLabel { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; }
 .fieldValue { font-size: 0.9rem; color: #e2e8f0; font-weight: 500; }
 
-.packGrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+.packGrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; }
 .packCard { background: #0f0f1a; border: 1px solid #2d2d45; border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
 .packLabel { font-size: 0.75rem; color: #64748b; font-weight: 600; }
 .packBoxes { font-size: 1rem; font-weight: 700; color: #e2e8f0; }

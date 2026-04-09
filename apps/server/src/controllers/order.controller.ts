@@ -115,8 +115,10 @@ export async function updateOrder(
 
     const calc = calcOrderFields({
       packs:        body.packs        ?? existing.packs,
+      units:        body.units        ?? existing.units,
       unitPrice:    body.unitPrice    ?? existing.unitPrice,
       shippingCost: body.shippingCost ?? existing.shippingCost,
+      packagingCost: body.packagingCost ?? existing.packagingCost,
       previousDue:  body.previousDue  ?? existing.previousDue,
       totalPaid:    existing.totalPaid, // totalPaid is managed by payments only
     });

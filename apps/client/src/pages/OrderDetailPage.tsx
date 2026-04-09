@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getOrder, deleteOrder, orderKeys } from "../api/orders";
 import { getPayments, deletePayment, paymentKeys } from "../api/payments";
+import { calcManualUnits, calcTotalBoxes } from "../api/orderCalcClient";
 import styles from "./OrderDetailPage.module.css";
 
 export default function OrderDetailPage() {
@@ -41,6 +42,8 @@ export default function OrderDetailPage() {
   if (!order)       return <p className={styles.muted}>Order not found.</p>;
 
   const payments = paymentData?.payments ?? [];
+  const totalBoxes = calcTotalBoxes(order.packs, order.totalBoxes);
+  const totalUnits = calcManualUnits(order.units, order.packs);
 
   return (
     <div className={styles.page}>
@@ -70,14 +73,18 @@ export default function OrderDetailPage() {
         <h2 className={styles.sectionTitle}>Order Details</h2>
         <div className={styles.grid}>
           <Field label="Supplier"      value={order.supplier} />
+          <Field label="Brand"         value={order.brand} />
           <Field label="Order Date"    value={new Date(order.orderDate).toLocaleDateString()} />
           <Field label="Unit Price"    value={`৳ ${order.unitPrice.toLocaleString()}`} />
           <Field label="Shipping"      value={`৳ ${order.shippingCost.toLocaleString()}`} />
+          <Field label="Packaging"     value={`৳ ${(order.packagingCost ?? 0).toLocaleString()}`} />
           <Field label="Previous Due"  value={`৳ ${order.previousDue.toLocaleString()}`} />
           <Field label="Product Total" value={`৳ ${order.productTotal.toLocaleString()}`} />
           <Field label="Grand Total"   value={`৳ ${order.grandTotal.toLocaleString()}`} />
           <Field label="Total Paid"    value={`৳ ${order.totalPaid.toLocaleString()}`} />
           <Field label="Balance Due"   value={`৳ ${order.balanceDue.toLocaleString()}`} />
+          <Field label="Total Boxes"   value={totalBoxes} />
+          <Field label="Total Units"   value={totalUnits} />
           <Field
             label="Status"
             value={
@@ -94,15 +101,16 @@ export default function OrderDetailPage() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Pack Breakdown</h2>
         <div className={styles.packGrid}>
-          {(["p1", "p2", "p3", "p4", "p6"] as const).map((key) => {
+          {(["p1", "p2", "p3", "p4", "p5", "p6"] as const).map((key) => {
             const size = key === "p6" ? 6 : parseInt(key[1]!);
-            const boxes = order.packs[key];
-            const units = boxes * size;
+            const boxes = order.packs[key] ?? 0;
+            const unitCount = order.units?.[key] ?? boxes;
+            const units = unitCount * size;
             return (
               <div key={key} className={styles.packCard}>
                 <span className={styles.packLabel}>{size}-Pack</span>
                 <span className={styles.packBoxes}>{boxes} boxes</span>
-                <span className={styles.packUnits}>{units} units</span>
+                <span className={styles.packUnits}>{unitCount} units x {size} = {units}</span>
               </div>
             );
           })}

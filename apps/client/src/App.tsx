@@ -6,6 +6,7 @@ import OrdersPage    from "./pages/OrdersPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import OrderFormPage from "./pages/OrderFormPage";
 import PaymentsPage  from "./pages/PaymentsPage";
+import BrandsPage from "./pages/BrandsPage";
 import SuppliersPage from "./pages/SuppliersPage";
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="orders/:id/edit"   element={<OrderFormPage />} />
           <Route path="payments"     element={<PaymentsPage />} />
           <Route path="payments/new" element={<PaymentsPage />} />
+          <Route path="brands"       element={<BrandsPage />} />
           <Route path="suppliers"    element={<SuppliersPage />} />
         </Route>
       </Routes>

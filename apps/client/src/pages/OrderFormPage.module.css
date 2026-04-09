@@ -8,16 +8,22 @@
 
 .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
 @media (max-width: 640px) { .row3 { grid-template-columns: 1fr; } }
+.row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+@media (max-width: 760px) { .row4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .row4 { grid-template-columns: 1fr; } }
 
 .fieldset { border: 1px solid #2d2d45; border-radius: 8px; padding: 1rem 1rem 0.75rem; }
 .legend   { color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 0.35rem; }
 
-.packRow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem; }
+.packRow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.6rem; }
 @media (max-width: 560px) { .packRow { grid-template-columns: repeat(3, 1fr); } }
 
 .packCol { display: flex; flex-direction: column; gap: 0.2rem; }
 .packLabel { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+.packInputGroup { display: flex; flex-direction: column; gap: 0.2rem; }
+.packInputLabel { font-size: 0.7rem; color: #475569; }
 .packUnits { font-size: 0.72rem; color: #6c8bff; }
+.totalBoxesRow { max-width: 180px; margin-top: 0.8rem; }
 
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
 .fieldLabel { font-size: 0.78rem; font-weight: 500; color: #94a3b8; }

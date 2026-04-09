@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getOrders, deleteOrder, orderKeys } from "../api/orders";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
-import { calcTotalUnits } from "../api/orderCalcClient";
+import { calcTotalBoxes, calcTotalUnits } from "../api/orderCalcClient";
 import { StatusBadge } from "../components/ui/Badge";
 import { SkeletonRow } from "../components/ui/Skeleton";
 import { useToast } from "../context/ToastContext";
@@ -135,16 +135,19 @@ export default function OrdersPage() {
               <th className={styles.sticky}>Invoice</th>
               <th>Date</th>
               <th>Supplier</th>
+              <th>Brand</th>
               <th title="1-Pack boxes">1P</th>
               <th title="2-Pack boxes">2P</th>
               <th title="3-Pack boxes">3P</th>
               <th title="4-Pack boxes">4P</th>
+              <th title="5-Pack boxes">5P</th>
               <th title="6-Pack boxes">6P</th>
               <th>Boxes</th>
               <th>Units</th>
               <th>Unit Price</th>
               <th>Product Total</th>
               <th>Shipping</th>
+              <th>Packaging</th>
               <th>Prev Due</th>
               <th>Grand Total</th>
               <th>Paid</th>
@@ -156,19 +159,19 @@ export default function OrdersPage() {
           </thead>
           <tbody>
             {isLoading
-              ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} cols={20} />)
+              ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} cols={23} />)
               : orders.length === 0
               ? (
                 <tr>
-                  <td colSpan={20} className={styles.empty}>
+                  <td colSpan={23} className={styles.empty}>
                     {hasFilter ? "No orders match your filters." : "No orders yet. "}
                     {!hasFilter && <Link to="/orders/new" className={styles.link}>Create one →</Link>}
                   </td>
                 </tr>
               )
               : orders.map((o) => {
-                const totalBoxes = o.packs.p1 + o.packs.p2 + o.packs.p3 + o.packs.p4 + o.packs.p6;
-                const totalUnits = calcTotalUnits(o.packs);
+                const totalBoxes = calcTotalBoxes(o.packs, o.totalBoxes);
+                const totalUnits = calcTotalUnits(o.packs, o.units);
                 return (
                   <tr key={o._id}>
                     <td className={`${styles.sticky} ${styles.invoiceCell}`}>
@@ -176,16 +179,19 @@ export default function OrdersPage() {
                     </td>
                     <td>{new Date(o.orderDate).toLocaleDateString()}</td>
                     <td>{o.supplier}</td>
+                    <td>{o.brand}</td>
                     <td className={styles.num}>{o.packs.p1}</td>
                     <td className={styles.num}>{o.packs.p2}</td>
                     <td className={styles.num}>{o.packs.p3}</td>
                     <td className={styles.num}>{o.packs.p4}</td>
+                    <td className={styles.num}>{o.packs.p5 ?? 0}</td>
                     <td className={styles.num}>{o.packs.p6}</td>
                     <td className={styles.num}>{totalBoxes}</td>
                     <td className={styles.num}>{totalUnits}</td>
                     <td className={styles.money}>৳{o.unitPrice.toLocaleString()}</td>
                     <td className={styles.money}>৳{o.productTotal.toLocaleString()}</td>
                     <td className={styles.money}>৳{o.shippingCost.toLocaleString()}</td>
+                    <td className={styles.money}>৳{(o.packagingCost ?? 0).toLocaleString()}</td>
                     <td className={styles.money}>৳{o.previousDue.toLocaleString()}</td>
                     <td className={styles.money}>৳{o.grandTotal.toLocaleString()}</td>
                     <td className={`${styles.money} ${styles.green}`}>৳{o.totalPaid.toLocaleString()}</td>

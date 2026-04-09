@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { to: "/",          label: "Dashboard"  },
   { to: "/orders",    label: "Orders"     },
   { to: "/payments",  label: "Payments"   },
+  { to: "/brands",    label: "Brands"     },
   { to: "/suppliers", label: "Suppliers"  },
 ];
 
