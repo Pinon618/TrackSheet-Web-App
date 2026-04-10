@@ -10,7 +10,9 @@
     "dev": "bun run --filter '*' dev",
     "dev:client": "bun run --filter @tracksheet/client dev",
     "dev:server": "bun run --filter @tracksheet/server dev",
-    "build": "bun run --filter '*' build",
+    "build": "npm run build --workspace=apps/client && npm run build --workspace=apps/server",
+    "build:client": "npm run build --workspace=apps/client",
+    "build:server": "npm run build --workspace=apps/server",
     "lint": "bun run --filter '*' lint",
     "typecheck": "bun run --filter '*' typecheck"
   },
