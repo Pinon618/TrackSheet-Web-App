@@ -63,7 +63,7 @@ export default function OrderFormPage() {
   const [errors, setErrors]   = useState<FieldErrors>({});
 
   function safeNumber(value: number | undefined): number {
-    return Number.isFinite(value) ? value : 0;
+    return Number.isFinite(value) ? (value as number) : 0;
   }
 
   // ── Prefill on edit ──────────────────────────────────────────────────────
