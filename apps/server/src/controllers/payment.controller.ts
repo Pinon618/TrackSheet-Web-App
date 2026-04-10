@@ -3,7 +3,7 @@ import { PaymentModel } from "../models/Payment";
 import { OrderModel } from "../models/Order";
 import { calcOrderFields } from "../lib/orderCalc";
 import { AppError } from "../middlewares/errorHandler";
-import type { CreatePaymentInput, UpdatePaymentInput } from "@tracksheet/shared";
+import type { CreatePaymentInput, UpdatePaymentInput, SupplierBulkPaymentInput } from "@tracksheet/shared";
 
 // After any payment change, re-derive totalPaid + order calc fields
 async function syncOrderTotals(invoiceSerial: string): Promise<void> {
@@ -126,6 +126,64 @@ export async function updatePayment(
     await syncOrderTotals(existing.invoiceSerial);
 
     res.json({ success: true, data: updated });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/v1/payments/supplier-bulk
+// Distribute a lump-sum payment across a supplier's unpaid orders (oldest first).
+export async function supplierBulkPayment(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const body = req.body as SupplierBulkPaymentInput;
+
+    // Fetch all unpaid/partial orders for this supplier, oldest first
+    const orders = await OrderModel.find({
+      supplier: body.supplier,
+      isDeleted: false,
+      status: { $in: ["DUE", "PARTIAL"] },
+    }).sort({ orderDate: 1, createdAt: 1 });
+
+    if (orders.length === 0) {
+      throw new AppError(404, `No outstanding orders found for supplier '${body.supplier}'`);
+    }
+
+    let remaining = body.amount;
+    const createdPayments: unknown[] = [];
+
+    for (const order of orders) {
+      if (remaining <= 0) break;
+
+      const apply = Math.min(remaining, order.balanceDue);
+      if (apply <= 0) continue;
+
+      const payment = await PaymentModel.create({
+        invoiceSerial: order.invoiceSerial,
+        supplier:      body.supplier,
+        paymentDate:   body.paymentDate,
+        amount:        apply,
+        paymentType:   body.paymentType,
+        referenceNo:   body.referenceNo,
+        notes:         body.notes,
+      });
+
+      createdPayments.push(payment.toObject());
+      await syncOrderTotals(order.invoiceSerial);
+      remaining -= apply;
+    }
+
+    res.status(201).json({
+      success: true,
+      data: {
+        payments: createdPayments,
+        totalApplied: body.amount - remaining,
+        surplus: remaining,
+      },
+    });
   } catch (err) {
     next(err);
   }

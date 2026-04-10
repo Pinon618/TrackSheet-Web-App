@@ -53,3 +53,17 @@ export const UpdatePaymentSchema = CreatePaymentSchema.omit({
 }).partial();
 
 export type UpdatePaymentInput = z.infer<typeof UpdatePaymentSchema>;
+
+// ── Supplier Bulk Payment ─────────────────────────────────────────────────────
+// Pay a supplier directly — the server distributes across unpaid orders.
+
+export const SupplierBulkPaymentSchema = z.object({
+  supplier: z.string().min(1, "Supplier is required"),
+  paymentDate: z.coerce.date(),
+  amount: z.number().positive("Payment amount must be greater than 0"),
+  paymentType: PaymentTypeSchema,
+  referenceNo: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type SupplierBulkPaymentInput = z.infer<typeof SupplierBulkPaymentSchema>;

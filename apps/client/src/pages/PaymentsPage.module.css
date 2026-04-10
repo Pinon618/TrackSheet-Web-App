@@ -59,3 +59,10 @@
 
 .empty { padding: 2rem; text-align: center; color: #475569; }
 .meta  { color: #475569; font-size: 0.78rem; }
+
+.modeToggle { display: flex; gap: 0; border: 1px solid #2d2d45; border-radius: 7px; overflow: hidden; align-self: flex-start; }
+.modeActive   { background: #6c8bff; color: #fff; border: none; padding: 0.38rem 0.9rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.modeInactive { background: transparent; color: #94a3b8; border: none; padding: 0.38rem 0.9rem; font-size: 0.82rem; cursor: pointer; }
+.modeInactive:hover { color: #e2e8f0; background: #1e1e30; }
+
+.bulkHint { font-size: 0.78rem; color: #64748b; margin: 0; }

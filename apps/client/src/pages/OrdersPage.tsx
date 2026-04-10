@@ -188,15 +188,15 @@ export default function OrdersPage() {
                     <td className={styles.num}>{o.packs.p6}</td>
                     <td className={styles.num}>{totalBoxes}</td>
                     <td className={styles.num}>{totalUnits}</td>
-                    <td className={styles.money}>৳{o.unitPrice.toLocaleString()}</td>
-                    <td className={styles.money}>৳{o.productTotal.toLocaleString()}</td>
-                    <td className={styles.money}>৳{o.shippingCost.toLocaleString()}</td>
-                    <td className={styles.money}>৳{(o.packagingCost ?? 0).toLocaleString()}</td>
-                    <td className={styles.money}>৳{o.previousDue.toLocaleString()}</td>
-                    <td className={styles.money}>৳{o.grandTotal.toLocaleString()}</td>
-                    <td className={`${styles.money} ${styles.green}`}>৳{o.totalPaid.toLocaleString()}</td>
+                    <td className={styles.money}>${o.unitPrice.toLocaleString()}</td>
+                    <td className={styles.money}>${o.productTotal.toLocaleString()}</td>
+                    <td className={styles.money}>${o.shippingCost.toLocaleString()}</td>
+                    <td className={styles.money}>${(o.packagingCost ?? 0).toLocaleString()}</td>
+                    <td className={styles.money}>${o.previousDue.toLocaleString()}</td>
+                    <td className={styles.money}>${o.grandTotal.toLocaleString()}</td>
+                    <td className={`${styles.money} ${styles.green}`}>${o.totalPaid.toLocaleString()}</td>
                     <td className={`${styles.money} ${o.balanceDue > 0 ? styles.red : styles.green}`}>
-                      ৳{o.balanceDue.toLocaleString()}
+                      ${o.balanceDue.toLocaleString()}
                     </td>
                     <td><StatusBadge status={o.status} /></td>
                     <td className={styles.notes}>{o.notes ?? "—"}</td>

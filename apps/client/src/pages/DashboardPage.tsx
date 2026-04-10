@@ -71,7 +71,7 @@ export default function DashboardPage() {
     [orders]
   );
 
-  const fmt = (n: number) => `৳ ${n.toLocaleString()}`;
+  const fmt = (n: number) => `$ ${n.toLocaleString()}`;
 
   return (
     <div className={styles.page}>

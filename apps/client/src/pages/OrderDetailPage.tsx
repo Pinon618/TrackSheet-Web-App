@@ -75,14 +75,14 @@ export default function OrderDetailPage() {
           <Field label="Supplier"      value={order.supplier} />
           <Field label="Brand"         value={order.brand} />
           <Field label="Order Date"    value={new Date(order.orderDate).toLocaleDateString()} />
-          <Field label="Unit Price"    value={`৳ ${order.unitPrice.toLocaleString()}`} />
-          <Field label="Shipping"      value={`৳ ${order.shippingCost.toLocaleString()}`} />
-          <Field label="Packaging"     value={`৳ ${(order.packagingCost ?? 0).toLocaleString()}`} />
-          <Field label="Previous Due"  value={`৳ ${order.previousDue.toLocaleString()}`} />
-          <Field label="Product Total" value={`৳ ${order.productTotal.toLocaleString()}`} />
-          <Field label="Grand Total"   value={`৳ ${order.grandTotal.toLocaleString()}`} />
-          <Field label="Total Paid"    value={`৳ ${order.totalPaid.toLocaleString()}`} />
-          <Field label="Balance Due"   value={`৳ ${order.balanceDue.toLocaleString()}`} />
+          <Field label="Unit Price"    value={`$ ${order.unitPrice.toLocaleString()}`} />
+          <Field label="Shipping"      value={`$ ${order.shippingCost.toLocaleString()}`} />
+          <Field label="Packaging"     value={`$ ${(order.packagingCost ?? 0).toLocaleString()}`} />
+          <Field label="Previous Due"  value={`$ ${order.previousDue.toLocaleString()}`} />
+          <Field label="Product Total" value={`$ ${order.productTotal.toLocaleString()}`} />
+          <Field label="Grand Total"   value={`$ ${order.grandTotal.toLocaleString()}`} />
+          <Field label="Total Paid"    value={`$ ${order.totalPaid.toLocaleString()}`} />
+          <Field label="Balance Due"   value={`$ ${order.balanceDue.toLocaleString()}`} />
           <Field label="Total Boxes"   value={totalBoxes} />
           <Field label="Total Units"   value={totalUnits} />
           <Field
@@ -148,7 +148,7 @@ export default function OrderDetailPage() {
               {payments.map((p) => (
                 <tr key={p._id}>
                   <td>{new Date(p.paymentDate).toLocaleDateString()}</td>
-                  <td>৳ {p.amount.toLocaleString()}</td>
+                  <td>$ {p.amount.toLocaleString()}</td>
                   <td>{p.paymentType}</td>
                   <td>{p.referenceNo ?? "—"}</td>
                   <td>{p.notes ?? "—"}</td>

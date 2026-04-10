@@ -109,7 +109,9 @@ export default function BrandsPage() {
                 className={styles.input}
                 value={form.name}
                 placeholder="e.g. Acme"
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                required
+                minLength={1}
+                onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setErrors((er) => ({ ...er, name: undefined })); }}
               />
             </FormField>
             <FormField label="Notes" error={errors["notes"]} wide>

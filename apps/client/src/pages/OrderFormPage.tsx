@@ -219,6 +219,8 @@ export default function OrderFormPage() {
               className={styles.input}
               value={form.invoiceSerial}
               readOnly={isEdit}
+              required={!isEdit}
+              minLength={1}
               placeholder="e.g. OZI78967"
               onChange={(e) => setField("invoiceSerial", e.target.value)}
             />
@@ -228,6 +230,7 @@ export default function OrderFormPage() {
               type="date"
               className={styles.input}
               value={dateStr}
+              required
               onChange={(e) => setField("orderDate", new Date(e.target.value))}
             />
           </Field>
@@ -235,6 +238,7 @@ export default function OrderFormPage() {
             <select
               className={styles.input}
               value={form.supplier}
+              required
               onChange={(e) => setField("supplier", e.target.value)}
             >
               <option value="">Select supplier…</option>
@@ -247,6 +251,7 @@ export default function OrderFormPage() {
             <select
               className={styles.input}
               value={form.brand}
+              required
               onChange={(e) => setField("brand", e.target.value)}
             >
               <option value="">Select brand…</option>
@@ -306,17 +311,18 @@ export default function OrderFormPage() {
 
         {/* ── Pricing ───────────────────────────────────────────────────── */}
         <div className={styles.row4}>
-          <Field label="Unit Price (৳) *" error={errors["unitPrice"]}>
+          <Field label="Unit Price ($) *" error={errors["unitPrice"]}>
             <input
               type="number"
               className={styles.input}
               value={unitPrice}
               min={0}
               step="0.01"
+              required
               onChange={(e) => handleNumberFieldChange("unitPrice", e)}
             />
           </Field>
-          <Field label="Shipping Cost (৳)" error={errors["shippingCost"]}>
+          <Field label="Shipping Cost ($)" error={errors["shippingCost"]}>
             <input
               type="number"
               className={styles.input}
@@ -326,7 +332,7 @@ export default function OrderFormPage() {
               onChange={(e) => handleNumberFieldChange("shippingCost", e)}
             />
           </Field>
-          <Field label="Packaging Cost (৳)" error={errors["packagingCost"]}>
+          <Field label="Packaging Cost ($)" error={errors["packagingCost"]}>
             <input
               type="number"
               className={styles.input}
@@ -336,7 +342,7 @@ export default function OrderFormPage() {
               onChange={(e) => handleNumberFieldChange("packagingCost", e)}
             />
           </Field>
-          <Field label="Previous Due (৳)" error={errors["previousDue"]}>
+          <Field label="Previous Due ($)" error={errors["previousDue"]}>
             <input
               type="number"
               className={styles.input}
@@ -351,8 +357,8 @@ export default function OrderFormPage() {
         {/* ── Live calculation preview ──────────────────────────────────── */}
         <div className={styles.calcRow}>
           <CalcBox label="Total Units"   value={totalUnits} />
-          <CalcBox label="Product Total" value={`৳ ${productTotal.toLocaleString()}`} />
-          <CalcBox label="Grand Total"   value={`৳ ${grandTotal.toLocaleString()}`}  highlight />
+          <CalcBox label="Product Total" value={`$ ${productTotal.toLocaleString()}`} />
+          <CalcBox label="Grand Total"   value={`$ ${grandTotal.toLocaleString()}`}  highlight />
         </div>
 
         {/* ── Notes ────────────────────────────────────────────────────── */}

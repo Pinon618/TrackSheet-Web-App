@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 import type { ApiOk, PaymentListParams, Paginated } from "./types";
-import type { Payment, CreatePaymentInput, UpdatePaymentInput } from "@tracksheet/shared";
+import type { Payment, CreatePaymentInput, UpdatePaymentInput, SupplierBulkPaymentInput } from "@tracksheet/shared";
 
 interface PaymentListData extends Paginated<Payment> {
   payments: Payment[];
@@ -35,4 +35,15 @@ export async function updatePayment(id: string, body: UpdatePaymentInput): Promi
 
 export async function deletePayment(id: string): Promise<void> {
   await apiClient.delete(`/payments/${id}`);
+}
+
+export interface SupplierBulkPaymentResult {
+  payments: Payment[];
+  totalApplied: number;
+  surplus: number;
+}
+
+export async function supplierBulkPayment(body: SupplierBulkPaymentInput): Promise<SupplierBulkPaymentResult> {
+  const { data } = await apiClient.post<ApiOk<SupplierBulkPaymentResult>>("/payments/supplier-bulk", body);
+  return data.data;
 }

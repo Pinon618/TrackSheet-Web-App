@@ -146,7 +146,9 @@ export default function SuppliersPage() {
                 className={styles.input}
                 value={form.name}
                 placeholder="e.g. Acme Supplies"
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                required
+                minLength={1}
+                onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setErrors((er) => ({ ...er, name: undefined })); }}
               />
             </FormField>
             <FormField label="Contact Person" error={errors["contactPerson"]}>
@@ -158,8 +160,10 @@ export default function SuppliersPage() {
             </FormField>
             <FormField label="Phone" error={errors["phone"]}>
               <input
+                type="tel"
                 className={styles.input}
                 value={form.phone ?? ""}
+                placeholder="e.g. +1 555 000 0000"
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
               />
             </FormField>
@@ -241,7 +245,7 @@ export default function SuppliersPage() {
                     <td>{s.countryRegion ?? "—"}</td>
                     <td className={styles.num}>{stats?.orderCount ?? 0}</td>
                     <td className={`${styles.num} ${(stats?.balanceDue ?? 0) > 0 ? styles.red : styles.green}`}>
-                      ৳ {(stats?.balanceDue ?? 0).toLocaleString()}
+                      $ {(stats?.balanceDue ?? 0).toLocaleString()}
                     </td>
                     <td>
                       <div className={styles.actions}>
