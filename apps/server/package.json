@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tracksheet/shared": "workspace:*",
+    "@tracksheet/shared": "file:../../packages/shared",
     "better-auth": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.1",

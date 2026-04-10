@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.96.2",
-    "@tracksheet/shared": "workspace:*",
+    "@tracksheet/shared": "file:../../packages/shared",
     "axios": "^1.14.0",
     "better-auth": "^1.6.0",
     "react": "^18.3.0",
