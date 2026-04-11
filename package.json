@@ -10,9 +10,9 @@
     "dev": "npm run --workspaces --if-present dev",
     "dev:client": "npm run -w @tracksheet/client dev",
     "dev:server": "npm run -w @tracksheet/server dev",
-    "build": "cd apps/client && npm install --include=dev && npx vite@5.4.21 build && cd ../../ && cd apps/server && npm install --legacy-peer-deps && npm run build",
+    "build": "cd apps/client && npm install --include=dev && npx vite@5.4.21 build && cd ../../ && cd apps/server && npm install --include=dev --legacy-peer-deps && npm run build",
     "build:client": "cd apps/client && npm install --include=dev && npx vite@5.4.21 build",
-    "build:server": "cd apps/server && npm install --legacy-peer-deps && npm run build",
+    "build:server": "cd apps/server && npm install --include=dev --legacy-peer-deps && npm run build",
     "lint": "npm run --workspaces --if-present lint",
     "typecheck": "npm run --workspaces --if-present typecheck"
   },
