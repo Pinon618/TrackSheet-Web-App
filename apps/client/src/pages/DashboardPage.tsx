@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getOrders, orderKeys } from "../api/orders";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
+import { getBrands, brandKeys } from "../api/brands";
 import { StatusBadge } from "../components/ui/Badge";
 import { SkeletonCard, SkeletonRow } from "../components/ui/Skeleton";
 import { calcTotalBoxes, calcTotalUnits } from "../api/orderCalcClient";
@@ -22,7 +23,31 @@ export default function DashboardPage() {
     queryFn:  () => getSuppliers(),
   });
 
-  const orders = allOrderData?.orders ?? [];
+  const { data: brands, isLoading: loadingBrands } = useQuery({
+    queryKey: brandKeys.list(),
+    queryFn: () => getBrands(),
+  });
+
+  const [filterSupplier, setFilterSupplier] = useState("");
+  const [filterBrand, setFilterBrand] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+
+  const allOrders = allOrderData?.orders ?? [];
+
+  const orders = useMemo(() => {
+    return allOrders.filter((o) => {
+      if (filterSupplier && o.supplier !== filterSupplier) return false;
+      if (filterBrand && o.brand !== filterBrand) return false;
+      if (filterDateFrom && new Date(o.orderDate) < new Date(filterDateFrom)) return false;
+      if (filterDateTo) {
+        const toDate = new Date(filterDateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (new Date(o.orderDate) > toDate) return false;
+      }
+      return true;
+    });
+  }, [allOrders, filterSupplier, filterBrand, filterDateFrom, filterDateTo]);
 
   // ── Aggregate stats ────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -75,7 +100,75 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.heading}>Dashboard</h1>
+      <div className={styles.headerRow}>
+        <h1 className={styles.heading}>Dashboard</h1>
+        
+        <div className={styles.filters}>
+          <div className={styles.filterGroup}>
+            <label>Supplier</label>
+            <select
+              value={filterSupplier}
+              onChange={(e) => setFilterSupplier(e.target.value)}
+              disabled={loadingSuppliers}
+            >
+              <option value="">All Suppliers</option>
+              {suppliers?.map((s) => (
+                <option key={s._id} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className={styles.filterGroup}>
+            <label>Brand</label>
+            <select
+              value={filterBrand}
+              onChange={(e) => setFilterBrand(e.target.value)}
+              disabled={loadingBrands}
+            >
+              <option value="">All Brands</option>
+              {brands?.map((b) => (
+                <option key={b._id} value={b.name}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className={styles.filterGroup}>
+            <label>From</label>
+            <input
+              type="date"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+            />
+          </div>
+          
+          <div className={styles.filterGroup}>
+            <label>To</label>
+            <input
+              type="date"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+            />
+          </div>
+          
+          {(filterSupplier || filterBrand || filterDateFrom || filterDateTo) && (
+            <button
+              className={styles.clearBtn}
+              onClick={() => {
+                setFilterSupplier("");
+                setFilterBrand("");
+                setFilterDateFrom("");
+                setFilterDateTo("");
+              }}
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* ── Stat cards ──────────────────────────────────────────────────── */}
       <section className={styles.cards}>

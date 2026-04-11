@@ -1,5 +1,68 @@
 .page { display: flex; flex-direction: column; gap: 1.75rem; }
+.headerRow { display: flex; flex-direction: column; gap: 1rem; }
 .heading { font-size: 1.5rem; font-weight: 700; margin: 0; color: #e2e8f0; }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  background: #1a1a2a;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #2d2d45;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filterGroup label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.filterGroup select,
+.filterGroup input {
+  padding: 0.5rem 0.75rem;
+  background: #12121e;
+  border: 1px solid #2d2d45;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  outline: none;
+  min-width: 140px;
+}
+
+.filterGroup select:focus,
+.filterGroup input:focus {
+  border-color: #6c8bff;
+}
+
+.clearBtn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: #f87171;
+  border: 1px solid #f8717140;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 34px;
+}
+
+.clearBtn:hover {
+  background: #f871711a;
+  border-color: #f87171;
+}
+
+@media (min-width: 768px) {
+  .headerRow { flex-direction: row; justify-content: space-between; align-items: flex-start; }
+}
 
 .cards {
   display: grid;
