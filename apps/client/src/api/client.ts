@@ -2,11 +2,7 @@ import axios from "axios";
 import { ApiError } from "./types";
 import type { ApiErr } from "./types";
 
-const apiUrl = import.meta.env["VITE_API_URL"] as string | undefined;
-
-if (!apiUrl) {
-  throw new Error("VITE_API_URL is not set");
-}
+const apiUrl = (import.meta.env["VITE_API_URL"] as string | undefined) || "/api/v1";
 
 export const apiClient = axios.create({
   baseURL: apiUrl,
