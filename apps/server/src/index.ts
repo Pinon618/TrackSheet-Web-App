@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { connectDB } from "./db";
@@ -49,9 +51,20 @@ app.use("/api/v1/brands",    asyncHandler(requireAuth), brandRoutes);
 app.use("/api/v1/suppliers", asyncHandler(requireAuth), supplierRoutes);
 app.use("/api/v1/users",     asyncHandler(requireAuth), userRoutes);
 
+// ── Static files & SPA Catch-all ─────────────────────────────────────────────
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDistPath = path.resolve(__dirname, "../../client/dist");
+
+app.use(express.static(clientDistPath));
+
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(clientDistPath, "index.html"));
+});
+
 // ── 404 ──────────────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({ success: false, error: "Route not found" });
+app.use("/api/*", (_req, res) => {
+  res.status(404).json({ success: false, error: "API Route not found" });
 });
 
 // ── Error handler (must be last) ─────────────────────────────────────────────
