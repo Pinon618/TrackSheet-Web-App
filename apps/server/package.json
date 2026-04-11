@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
-    "build": "npx esbuild@0.25.0 src/index.ts --bundle --outdir=dist --platform=node --target=node22 --format=esm",
+    "build": "node build.js",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },
