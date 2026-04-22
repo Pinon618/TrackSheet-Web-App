@@ -69,8 +69,8 @@ export default function DashboardPage() {
       packaging   += o.packagingCost ?? 0;
       grandTotal  += o.grandTotal;
       paid        += o.totalPaid;
-      balanceDue  += o.balanceDue;
-      orderOverpay += Math.max(0, o.totalPaid - o.grandTotal);
+      balanceDue  += Math.max(0, o.balanceDue);
+      orderOverpay += Math.max(0, -o.balanceDue);
     }
 
     const supplierCredit = (suppliers ?? []).reduce(
@@ -91,8 +91,8 @@ export default function DashboardPage() {
       entry.orders    += 1;
       entry.grandTotal += o.grandTotal;
       entry.paid       += o.totalPaid;
-      entry.due        += o.balanceDue;
-      entry.overpay    += Math.max(0, o.totalPaid - o.grandTotal);
+      entry.due        += Math.max(0, o.balanceDue);
+      entry.overpay    += Math.max(0, -o.balanceDue);
       map.set(o.supplier, entry);
     }
     // Include suppliers with stored credit but no orders, so the credit is visible.

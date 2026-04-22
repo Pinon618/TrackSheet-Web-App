@@ -66,8 +66,18 @@ export default function OrdersPage() {
     }
   }
 
-  const orders = data?.orders ?? [];
   const hasFilter = !!(params.supplier ?? params.status ?? params.search ?? params.from ?? params.to);
+
+  const signedFmt = (n: number) => {
+    // n is balanceDue (grandTotal - totalPaid)
+    // User wants:
+    // - Positive for extra payment (which means balanceDue < 0)
+    // - Negative for due amount (which means balanceDue > 0)
+    const val = -n;
+    return val > 0 ? `+$ ${val.toLocaleString()}`
+      : val < 0 ? `-$ ${Math.abs(val).toLocaleString()}`
+      : `$ 0`;
+  };
 
   return (
     <div className={styles.page}>
@@ -196,7 +206,7 @@ export default function OrdersPage() {
                     <td className={styles.money}>${o.grandTotal.toLocaleString()}</td>
                     <td className={`${styles.money} ${styles.green}`}>${o.totalPaid.toLocaleString()}</td>
                     <td className={`${styles.money} ${o.balanceDue > 0 ? styles.red : styles.green}`}>
-                      ${o.balanceDue.toLocaleString()}
+                      {signedFmt(o.balanceDue)}
                     </td>
                     <td><StatusBadge status={o.status} /></td>
                     <td className={styles.notes}>{o.notes ?? "—"}</td>

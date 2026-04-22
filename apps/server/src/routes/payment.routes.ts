@@ -9,9 +9,17 @@ import {
   updatePayment,
   deletePayment,
   supplierBulkPayment,
+  getBulkPayments,
+  getBulkPayment,
+  deleteBulkPayment,
 } from "../controllers/payment.controller";
 
 const router = Router();
+
+// Bulk payment routes — must come before /:id so "bulk" isn't parsed as an id.
+router.get(   "/bulk",           asyncHandler(getBulkPayments));
+router.get(   "/bulk/:id",       asyncHandler(getBulkPayment));
+router.delete("/bulk/:id",       asyncHandler(deleteBulkPayment));
 
 router.get(   "/",               asyncHandler(getPayments));   // supports ?invoiceSerial= filter
 router.post(  "/supplier-bulk",  validate("body", SupplierBulkPaymentSchema), asyncHandler(supplierBulkPayment));

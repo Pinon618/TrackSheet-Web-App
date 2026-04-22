@@ -1,8 +1,32 @@
 import type { Request, Response, NextFunction } from "express";
 import { SupplierModel } from "../models/Supplier";
 import { OrderModel } from "../models/Order";
+import { BulkPaymentModel } from "../models/BulkPayment";
+import { PaymentModel } from "../models/Payment";
 import { AppError } from "../middlewares/errorHandler";
 import type { CreateSupplierInput, UpdateSupplierInput } from "@tracksheet/shared";
+
+async function getSupplierCredits(): Promise<Record<string, number>> {
+  const [bulkStats, paymentStats] = await Promise.all([
+    BulkPaymentModel.aggregate([
+      { $match: { isDeleted: false } },
+      { $group: { _id: "$supplier", totalAmount: { $sum: "$amount" } } },
+    ]),
+    PaymentModel.aggregate([
+      { $match: { isDeleted: false, bulkPaymentId: { $exists: true } } },
+      { $group: { _id: "$supplier", totalApplied: { $sum: "$amount" } } },
+    ]),
+  ]);
+
+  const credits: Record<string, number> = {};
+  for (const b of bulkStats) {
+    credits[b._id] = b.totalAmount;
+  }
+  for (const p of paymentStats) {
+    credits[p._id] = (credits[p._id] || 0) - p.totalApplied;
+  }
+  return credits;
+}
 
 // GET /api/v1/suppliers
 export async function getSuppliers(
@@ -16,9 +40,17 @@ export async function getSuppliers(
     const filter: Record<string, unknown> = { isDeleted: false };
     if (search) filter["name"] = { $regex: search, $options: "i" };
 
-    const suppliers = await SupplierModel.find(filter).sort({ name: 1 }).lean();
+    const [suppliers, credits] = await Promise.all([
+      SupplierModel.find(filter).sort({ name: 1 }).lean(),
+      getSupplierCredits(),
+    ]);
 
-    res.json({ success: true, data: suppliers });
+    const data = suppliers.map((s) => ({
+      ...s,
+      creditBalance: Math.max(0, credits[s.name] || 0),
+    }));
+
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
@@ -31,14 +63,23 @@ export async function getSupplier(
   next: NextFunction
 ): Promise<void> {
   try {
-    const supplier = await SupplierModel.findOne({
-      _id: req.params["id"],
-      isDeleted: false,
-    }).lean();
+    const [supplier, credits] = await Promise.all([
+      SupplierModel.findOne({
+        _id: req.params["id"],
+        isDeleted: false,
+      }).lean(),
+      getSupplierCredits(),
+    ]);
 
     if (!supplier) throw new AppError(404, "Supplier not found");
 
-    res.json({ success: true, data: supplier });
+    res.json({
+      success: true,
+      data: {
+        ...supplier,
+        creditBalance: Math.max(0, credits[supplier.name] || 0),
+      },
+    });
   } catch (err) {
     next(err);
   }

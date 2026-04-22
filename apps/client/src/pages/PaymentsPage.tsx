@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getPayments, createPayment, updatePayment, deletePayment, paymentKeys,
   supplierBulkPayment,
+  getBulkPayments, getBulkPayment, deleteBulkPayment,
 } from "../api/payments";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
 import { orderKeys } from "../api/orders";
@@ -37,6 +38,7 @@ const EMPTY_BULK: SupplierBulkPaymentInput = {
 
 type FieldErrors = Partial<Record<string, string>>;
 type PaymentMode = "invoice" | "supplier";
+type HistoryTab  = "transactions" | "allocations";
 
 export default function PaymentsPage() {
   const qc = useQueryClient();
@@ -50,6 +52,8 @@ export default function PaymentsPage() {
   const [showCreate,    setShowCreate]    = useState(!!defaultInvoice);
   const [paymentMode,   setPaymentMode]   = useState<PaymentMode>("invoice");
   const [editingId,     setEditingId]     = useState<string | null>(null);
+  const [historyTab,    setHistoryTab]    = useState<HistoryTab>("transactions");
+  const [expandedBulkId, setExpandedBulkId] = useState<string | null>(null);
 
   const [createForm, setCreateForm] = useState<CreatePaymentInput>({
     ...EMPTY_CREATE,
@@ -77,6 +81,17 @@ export default function PaymentsPage() {
   });
   const supplierNames = suppliersData?.map((s) => s.name) ?? [];
 
+  const { data: bulkData, isLoading: loadingBulk, isError: bulkError } = useQuery({
+    queryKey: paymentKeys.bulkList(),
+    queryFn:  () => getBulkPayments(),
+  });
+
+  const { data: expandedDetail, isLoading: loadingExpanded } = useQuery({
+    queryKey: paymentKeys.bulkDetail(expandedBulkId ?? ""),
+    queryFn:  () => getBulkPayment(expandedBulkId ?? ""),
+    enabled:  !!expandedBulkId,
+  });
+
   // ── Mutations ─────────────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: createPayment,
@@ -100,6 +115,7 @@ export default function PaymentsPage() {
     mutationFn: supplierBulkPayment,
     onSuccess: (result) => {
       void qc.invalidateQueries({ queryKey: paymentKeys.all() });
+      void qc.invalidateQueries({ queryKey: supplierKeys.all() });
       void qc.invalidateQueries({ queryKey: orderKeys.all() });
       setShowCreate(false);
       setBulkForm({ ...EMPTY_BULK });
@@ -113,6 +129,23 @@ export default function PaymentsPage() {
       if (err instanceof ApiError) setBulkErrors(toFieldErrors(err.fieldErrors));
       addToast(err.message, "error");
     },
+  });
+
+  const deleteBulkMutation = useMutation({
+    mutationFn: deleteBulkPayment,
+    onSuccess: (result) => {
+      void qc.invalidateQueries({ queryKey: paymentKeys.all() });
+      void qc.invalidateQueries({ queryKey: supplierKeys.all() });
+      void qc.invalidateQueries({ queryKey: orderKeys.all() });
+      setExpandedBulkId(null);
+      const parts = [
+        `Reversed ${result.childrenReversed} payment(s)`,
+      ];
+      if (result.creditReversed > 0) parts.push(`−$${result.creditReversed.toLocaleString()} from credit`);
+      if (result.creditClamped > 0) parts.push(`$${result.creditClamped.toLocaleString()} already consumed`);
+      addToast(parts.join(", "), "success");
+    },
+    onError: (err: Error) => addToast(err.message, "error"),
   });
 
   const updateMutation = useMutation({
@@ -345,24 +378,46 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* ── Filter ───────────────────────────────────────────────────────── */}
-      <div className={styles.filterRow}>
-        <input
-          className={styles.input}
-          placeholder="Filter by invoice serial…"
-          value={filterInvoice}
-          onChange={(e) => setFilterInvoice(e.target.value)}
-        />
-        {filterInvoice && (
-          <button className={styles.btnSecondary} onClick={() => setFilterInvoice("")}>Clear</button>
-        )}
+      {/* ── History tabs ─────────────────────────────────────────────────── */}
+      <div className={styles.modeToggle}>
+        <button
+          type="button"
+          className={historyTab === "transactions" ? styles.modeActive : styles.modeInactive}
+          onClick={() => setHistoryTab("transactions")}
+        >
+          Transactions
+        </button>
+        <button
+          type="button"
+          className={historyTab === "allocations" ? styles.modeActive : styles.modeInactive}
+          onClick={() => setHistoryTab("allocations")}
+        >
+          Allocations
+        </button>
       </div>
 
-      {isError && (
-        <div className={styles.errorBanner}>Failed to load payments.</div>
+      {historyTab === "allocations" && (
+        <>
+          <div className={styles.filterRow}>
+            <input
+              className={styles.input}
+              placeholder="Filter by invoice serial…"
+              value={filterInvoice}
+              onChange={(e) => setFilterInvoice(e.target.value)}
+            />
+            {filterInvoice && (
+              <button className={styles.btnSecondary} onClick={() => setFilterInvoice("")}>Clear</button>
+            )}
+          </div>
+
+          {isError && (
+            <div className={styles.errorBanner}>Failed to load payments.</div>
+          )}
+        </>
       )}
 
-      {/* ── Table ───────────────────────────────────────────────────────── */}
+      {/* ── Allocations table ────────────────────────────────────────────── */}
+      {historyTab === "allocations" && (
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
@@ -475,9 +530,120 @@ export default function PaymentsPage() {
           </tbody>
         </table>
       </div>
+      )}
 
-      {data && (
+      {historyTab === "allocations" && data && (
         <p className={styles.meta}>{data.total} payment(s) total</p>
+      )}
+
+      {/* ── Transactions table ───────────────────────────────────────────── */}
+      {historyTab === "transactions" && (
+        <>
+          {bulkError && (
+            <div className={styles.errorBanner}>Failed to load transactions.</div>
+          )}
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th style={{ width: "32px" }}></th>
+                  <th>Date</th>
+                  <th>Supplier</th>
+                  <th>Amount</th>
+                  <th>Applied</th>
+                  <th>Credit</th>
+                  <th>Type</th>
+                  <th>Reference</th>
+                  <th>Notes</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingBulk
+                  ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={10} />)
+                  : !bulkData?.bulkPayments.length
+                  ? (
+                    <tr>
+                      <td colSpan={10} className={styles.empty}>No bulk transactions yet.</td>
+                    </tr>
+                  )
+                  : bulkData.bulkPayments.map((b) => {
+                    const isOpen = expandedBulkId === b._id;
+                    return (
+                      <Fragment key={b._id}>
+                        <tr
+                          className={styles.clickableRow}
+                          onClick={() => setExpandedBulkId(isOpen ? null : b._id)}
+                        >
+                          <td style={{ textAlign: "center", color: "#64748b" }}>{isOpen ? "▾" : "▸"}</td>
+                          <td>{new Date(b.paymentDate).toLocaleDateString()}</td>
+                          <td>{b.supplier}</td>
+                          <td className={styles.amount}>$ {b.amount.toLocaleString()}</td>
+                          <td>$ {b.totalApplied.toLocaleString()}</td>
+                          <td style={{ color: b.creditApplied > 0 ? "#4ade80" : "#64748b" }}>
+                            {b.creditApplied > 0 ? `+$ ${b.creditApplied.toLocaleString()}` : "—"}
+                          </td>
+                          <td>{b.paymentType}</td>
+                          <td>{b.referenceNo ?? "—"}</td>
+                          <td>{b.notes ?? "—"}</td>
+                          <td onClick={(e) => e.stopPropagation()}>
+                            <button
+                              className={styles.btnDelete}
+                              disabled={deleteBulkMutation.isPending}
+                              onClick={() => {
+                                if (confirm(`Delete this $${b.amount.toLocaleString()} transaction? All ${b.totalApplied > 0 ? "distributed payments" : "credit"} will be reversed.`)) {
+                                  deleteBulkMutation.mutate(b._id);
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                        {isOpen && (
+                          <tr className={styles.editRow}>
+                            <td colSpan={10} style={{ padding: "0.75rem 1rem" }}>
+                              {loadingExpanded ? (
+                                <span style={{ color: "#64748b", fontSize: "0.8rem" }}>Loading allocations…</span>
+                              ) : !expandedDetail?.allocations.length ? (
+                                <span style={{ color: "#64748b", fontSize: "0.8rem" }}>
+                                  No invoice allocations — entire amount went to supplier credit.
+                                </span>
+                              ) : (
+                                <table className={styles.table} style={{ margin: 0 }}>
+                                  <thead>
+                                    <tr>
+                                      <th>Invoice</th>
+                                      <th>Amount Applied</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {expandedDetail.allocations.map((a) => (
+                                      <tr key={a._id}>
+                                        <td>
+                                          <Link to={`/orders?search=${a.invoiceSerial}`} className={styles.invoiceLink}>
+                                            {a.invoiceSerial}
+                                          </Link>
+                                        </td>
+                                        <td className={styles.amount}>$ {a.amount.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+          {bulkData && (
+            <p className={styles.meta}>{bulkData.total} transaction(s) total</p>
+          )}
+        </>
       )}
     </div>
   );

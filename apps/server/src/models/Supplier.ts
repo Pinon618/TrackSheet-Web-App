@@ -6,7 +6,6 @@ export interface ISupplier {
   phone?: string;
   countryRegion?: string;
   notes?: string;
-  creditBalance: number;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -19,7 +18,6 @@ const supplierSchema: SchemaType<ISupplier> = new mongoose.Schema(
     phone:         { type: String },
     countryRegion: { type: String },
     notes:         { type: String },
-    creditBalance: { type: Number, default: 0, min: 0 },
     isDeleted:     { type: Boolean, default: false },
   },
   { timestamps: true }

@@ -22,6 +22,7 @@ export const PaymentSchema = z.object({
   paymentType: PaymentTypeSchema,
   referenceNo: z.string().optional(),
   notes: z.string().optional(),
+  bulkPaymentId: z.string().optional(),
   isDeleted: z.boolean().default(false),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
@@ -67,3 +68,22 @@ export const SupplierBulkPaymentSchema = z.object({
 });
 
 export type SupplierBulkPaymentInput = z.infer<typeof SupplierBulkPaymentSchema>;
+
+// ── Bulk Payment record (top-level transaction as user submitted) ────────────
+
+export const BulkPaymentSchema = z.object({
+  _id: z.string(),
+  supplier: z.string().min(1, "Supplier is required"),
+  paymentDate: z.coerce.date(),
+  amount: z.number().positive("Payment amount must be greater than 0"),
+  paymentType: PaymentTypeSchema,
+  referenceNo: z.string().optional(),
+  notes: z.string().optional(),
+  totalApplied: z.number().nonnegative().default(0),
+  creditApplied: z.number().nonnegative().default(0),
+  isDeleted: z.boolean().default(false),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+export type BulkPayment = z.infer<typeof BulkPaymentSchema>;

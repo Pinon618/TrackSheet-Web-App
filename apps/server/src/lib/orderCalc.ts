@@ -49,8 +49,8 @@ export function calcOrderFields(params: {
   const totalUnits = params.units ? calcManualUnits(params.units) : calcTotalUnits(params.packs);
   const productTotal = totalUnits * params.unitPrice;
   const grandTotal = productTotal + (params.shippingCost ?? 0) + (params.packagingCost ?? 0) + (params.previousDue ?? 0);
-  const balanceDue = Math.max(grandTotal - params.totalPaid, 0);
+  const balanceDue = grandTotal - params.totalPaid;
   const status: OrderStatus =
-    balanceDue === 0 ? "PAID" : params.totalPaid > 0 ? "PARTIAL" : "DUE";
+    balanceDue <= 0 ? "PAID" : params.totalPaid > 0 ? "PARTIAL" : "DUE";
   return { totalBoxes, productTotal, grandTotal, balanceDue, status };
 }

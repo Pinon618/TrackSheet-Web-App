@@ -45,8 +45,8 @@ export default function SuppliersPage() {
       const existing = map.get(order.supplier) ?? { orderCount: 0, totalDue: 0, overpay: 0 };
       map.set(order.supplier, {
         orderCount: existing.orderCount + 1,
-        totalDue:   existing.totalDue + order.balanceDue,
-        overpay:    existing.overpay + Math.max(0, order.totalPaid - order.grandTotal),
+        totalDue:   existing.totalDue + Math.max(0, order.balanceDue),
+        overpay:    existing.overpay + Math.max(0, -order.balanceDue),
       });
     }
     return map;

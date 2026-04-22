@@ -1,24 +1,23 @@
 import mongoose, { type Schema as SchemaType } from "mongoose";
 import type { PaymentType } from "@tracksheet/shared";
 
-export interface IPayment {
-  invoiceSerial: string;
+export interface IBulkPayment {
   supplier: string;
   paymentDate: Date;
   amount: number;
   paymentType: PaymentType;
   referenceNo?: string;
   notes?: string;
-  bulkPaymentId?: mongoose.Types.ObjectId;
+  totalApplied: number;
+  creditApplied: number;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const paymentSchema: SchemaType<IPayment> = new mongoose.Schema(
+const bulkPaymentSchema: SchemaType<IBulkPayment> = new mongoose.Schema(
   {
-    invoiceSerial: { type: String, required: true },
-    supplier:      { type: String, required: true },
+    supplier:      { type: String, required: true, trim: true },
     paymentDate:   { type: Date,   required: true },
     amount:        { type: Number, required: true, min: 0.01 },
     paymentType:   {
@@ -28,15 +27,15 @@ const paymentSchema: SchemaType<IPayment> = new mongoose.Schema(
     },
     referenceNo:   { type: String },
     notes:         { type: String },
-    bulkPaymentId: { type: mongoose.Schema.Types.ObjectId, ref: "BulkPayment" },
+    totalApplied:  { type: Number, required: true, min: 0, default: 0 },
+    creditApplied: { type: Number, required: true, min: 0, default: 0 },
     isDeleted:     { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-paymentSchema.index({ invoiceSerial: 1 });
-paymentSchema.index({ isDeleted: 1 });
-paymentSchema.index({ paymentDate: -1 });
-paymentSchema.index({ bulkPaymentId: 1 });
+bulkPaymentSchema.index({ supplier: 1 });
+bulkPaymentSchema.index({ paymentDate: -1 });
+bulkPaymentSchema.index({ isDeleted: 1 });
 
-export const PaymentModel = mongoose.model<IPayment>("Payment", paymentSchema);
+export const BulkPaymentModel = mongoose.model<IBulkPayment>("BulkPayment", bulkPaymentSchema);

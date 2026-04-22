@@ -52,7 +52,7 @@ const orderSchema: SchemaType<IOrder> = new mongoose.Schema(
     productTotal:  { type: Number, default: 0, min: 0 },
     grandTotal:    { type: Number, default: 0, min: 0 },
     totalPaid:     { type: Number, default: 0, min: 0 },
-    balanceDue:    { type: Number, default: 0, min: 0 },
+    balanceDue:    { type: Number, default: 0 },
     status:        { type: String, enum: ["PAID", "PARTIAL", "DUE"], default: "DUE" },
     notes:         { type: String },
     isDeleted:     { type: Boolean, default: false },

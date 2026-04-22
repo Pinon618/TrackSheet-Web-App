@@ -66,3 +66,6 @@
 .modeInactive:hover { color: #e2e8f0; background: #1e1e30; }
 
 .bulkHint { font-size: 0.78rem; color: #64748b; margin: 0; }
+
+.clickableRow { cursor: pointer; }
+.clickableRow:hover td { background: #1e1e30; }
