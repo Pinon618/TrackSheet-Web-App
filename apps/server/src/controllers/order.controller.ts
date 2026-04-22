@@ -3,8 +3,26 @@ import type { Request, Response, NextFunction } from "express";
 import { OrderModel } from "../models/Order";
 import { PaymentModel } from "../models/Payment";
 import { calcOrderFields } from "../lib/orderCalc";
+import { syncOrderTotals } from "../lib/syncOrderTotals";
 import { AppError } from "../middlewares/errorHandler";
 import type { CreateOrderInput, UpdateOrderInput } from "@tracksheet/shared";
+
+// GET /api/v1/orders/sync-all
+export async function syncAllOrders(
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const orders = await OrderModel.find({ isDeleted: false });
+    for (const order of orders) {
+      await syncOrderTotals(order.invoiceSerial);
+    }
+    res.json({ success: true, message: `Synced ${orders.length} orders` });
+  } catch (err) {
+    next(err);
+  }
+}
 
 // GET /api/v1/orders
 // Query: supplier, status, search, from, to, page, limit

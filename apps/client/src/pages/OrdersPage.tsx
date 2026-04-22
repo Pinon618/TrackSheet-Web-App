@@ -66,6 +66,7 @@ export default function OrdersPage() {
     }
   }
 
+  const orders = data?.orders ?? [];
   const hasFilter = !!(params.supplier ?? params.status ?? params.search ?? params.from ?? params.to);
 
   const signedFmt = (n: number) => {

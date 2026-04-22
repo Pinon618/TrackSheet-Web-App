@@ -4,29 +4,9 @@ import { BulkPaymentModel } from "../models/BulkPayment";
 import { OrderModel } from "../models/Order";
 import { SupplierModel } from "../models/Supplier";
 import { calcOrderFields } from "../lib/orderCalc";
+import { syncOrderTotals } from "../lib/syncOrderTotals";
 import { AppError } from "../middlewares/errorHandler";
 import type { CreatePaymentInput, UpdatePaymentInput, SupplierBulkPaymentInput } from "@tracksheet/shared";
-
-// After any payment change, re-derive totalPaid + order calc fields
-async function syncOrderTotals(invoiceSerial: string): Promise<void> {
-  const order = await OrderModel.findOne({ invoiceSerial, isDeleted: false });
-  if (!order) return;
-
-  const payments = await PaymentModel.find({ invoiceSerial, isDeleted: false });
-  const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-
-  const calc = calcOrderFields({
-    packs:        order.packs,
-    units:        order.units,
-    unitPrice:    order.unitPrice,
-    shippingCost: order.shippingCost,
-    packagingCost: order.packagingCost,
-    previousDue:  order.previousDue,
-    totalPaid,
-  });
-
-  await OrderModel.findByIdAndUpdate(order._id, { totalPaid, ...calc });
-}
 
 // GET /api/v1/payments
 export async function getPayments(

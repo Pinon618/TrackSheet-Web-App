@@ -1,21 +1,38 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { getOrders, orderKeys } from "../api/orders";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
 import { getBrands, brandKeys } from "../api/brands";
 import { StatusBadge } from "../components/ui/Badge";
 import { SkeletonCard, SkeletonRow } from "../components/ui/Skeleton";
 import { calcTotalBoxes, calcTotalUnits } from "../api/orderCalcClient";
+import { useToast } from "../context/ToastContext";
 import type { Supplier } from "@tracksheet/shared";
 import styles from "./DashboardPage.module.css";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
 
   const { data: allOrderData, isLoading: loadingOrders } = useQuery({
     queryKey: orderKeys.list({ limit: 10000 }),
     queryFn:  () => getOrders({ limit: 10000 }),
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
+      await axios.get(`${baseUrl}/orders/sync-all`, { withCredentials: true });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orderKeys.all() });
+      void qc.invalidateQueries({ queryKey: supplierKeys.all() });
+      addToast("All order totals recalculated from payment records", "success");
+    },
+    onError: (err) => addToast(err.message, "error"),
   });
 
   const { data: suppliers, isLoading: loadingSuppliers } = useQuery<Supplier[]>({
@@ -194,6 +211,19 @@ export default function DashboardPage() {
               Clear Filters
             </button>
           )}
+
+          <button
+            className={styles.syncBtn}
+            onClick={() => {
+              if (confirm("Recalculate all order totals based on actual payment records? This fixes cases where 'Total Paid' doesn't match the list of payments.")) {
+                syncMutation.mutate();
+              }
+            }}
+            disabled={syncMutation.isPending}
+            title="Fix 'Total Paid' drift by re-scanning all payments"
+          >
+            {syncMutation.isPending ? "Syncing..." : "Recalculate Totals"}
+          </button>
         </div>
       </div>
 

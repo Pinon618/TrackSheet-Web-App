@@ -5,6 +5,7 @@ import { CreateOrderSchema, UpdateOrderSchema } from "@tracksheet/shared";
 import {
   getOrders,
   getOrder,
+  syncAllOrders,
   createOrder,
   updateOrder,
   deleteOrder,
@@ -12,8 +13,9 @@ import {
 
 const router = Router();
 
-router.get(   "/",    asyncHandler(getOrders));
-router.get(   "/:id", asyncHandler(getOrder));
+router.get(   "/",         asyncHandler(getOrders));
+router.get(   "/sync-all", asyncHandler(syncAllOrders));
+router.get(   "/:id",      asyncHandler(getOrder));
 router.post(  "/",    validate("body", CreateOrderSchema), asyncHandler(createOrder));
 router.patch( "/:id", validate("body", UpdateOrderSchema), asyncHandler(updateOrder));
 router.delete("/:id", asyncHandler(deleteOrder));

@@ -60,6 +60,29 @@
   border-color: #f87171;
 }
 
+.syncBtn {
+  padding: 0.5rem 1rem;
+  background: #2d2d45;
+  color: #94a3b8;
+  border: 1px solid #3f3f5a;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 34px;
+}
+
+.syncBtn:hover {
+  background: #3f3f5a;
+  color: #e2e8f0;
+}
+
+.syncBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (min-width: 768px) {
   .headerRow { flex-direction: row; justify-content: space-between; align-items: flex-start; }
 }
