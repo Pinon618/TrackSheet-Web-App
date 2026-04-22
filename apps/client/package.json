@@ -15,7 +15,9 @@
     "@tracksheet/shared": "file:../../packages/shared",
     "axios": "^1.14.0",
     "better-auth": "^1.6.0",
+    "chart.js": "^4.5.1",
     "react": "^18.3.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^18.3.0",
     "react-router-dom": "^7.14.0"
   },

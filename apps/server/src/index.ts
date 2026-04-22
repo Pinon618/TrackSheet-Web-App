@@ -15,6 +15,7 @@ import paymentRoutes  from "./routes/payment.routes";
 import brandRoutes    from "./routes/brand.routes";
 import supplierRoutes from "./routes/supplier.routes";
 import userRoutes     from "./routes/user.routes";
+import rafiTransactionRoutes from "./routes/rafiTransaction.routes";
 
 const app  = express();
 const PORT = getEnv("PORT") ?? 3001;
@@ -50,6 +51,7 @@ app.use("/api/v1/payments",  asyncHandler(requireAuth), paymentRoutes);
 app.use("/api/v1/brands",    asyncHandler(requireAuth), brandRoutes);
 app.use("/api/v1/suppliers", asyncHandler(requireAuth), supplierRoutes);
 app.use("/api/v1/users",     asyncHandler(requireAuth), userRoutes);
+app.use("/api/v1/rafi-transactions", asyncHandler(requireAuth), rafiTransactionRoutes);
 
 // ── Static files & SPA Catch-all ─────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
