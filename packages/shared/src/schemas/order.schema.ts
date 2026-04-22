@@ -39,7 +39,7 @@ export const OrderSchema = z.object({
   productTotal: z.number().nonnegative(),
   grandTotal: z.number().nonnegative(),
   totalPaid: z.number().nonnegative(),
-  balanceDue: z.number().nonnegative(),
+  balanceDue: z.number(),
   status: OrderStatusSchema,
 
   notes: z.string().optional(),

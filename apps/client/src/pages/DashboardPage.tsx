@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { apiClient } from "../api/client";
 import { getOrders, orderKeys } from "../api/orders";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
 import { getBrands, brandKeys } from "../api/brands";
+import { paymentKeys } from "../api/payments";
 import { StatusBadge } from "../components/ui/Badge";
 import { SkeletonCard, SkeletonRow } from "../components/ui/Skeleton";
 import { calcTotalBoxes, calcTotalUnits } from "../api/orderCalcClient";
@@ -24,16 +25,19 @@ export default function DashboardPage() {
 
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
-      await axios.get(`${baseUrl}/orders/sync-all`, { withCredentials: true });
+      await apiClient.get("/orders/sync-all");
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: orderKeys.all() });
-      void qc.invalidateQueries({ queryKey: supplierKeys.all() });
-      addToast("All order totals recalculated from payment records", "success");
+      void qc.invalidateQueries(); // Invalidate EVERYTHING
+      addToast("All order totals recalculated and cache cleared", "success");
     },
-    onError: (err) => addToast(err.message, "error"),
+    onError: (err: any) => addToast(err.message || "Sync failed", "error"),
   });
+
+  function handleRefresh() {
+    void qc.invalidateQueries();
+    addToast("Data refreshed", "success");
+  }
 
   const { data: suppliers, isLoading: loadingSuppliers } = useQuery<Supplier[]>({
     queryKey: supplierKeys.list(),
@@ -211,6 +215,14 @@ export default function DashboardPage() {
               Clear Filters
             </button>
           )}
+
+          <button
+            className={styles.syncBtn}
+            onClick={handleRefresh}
+            title="Refresh dashboard data"
+          >
+            Refresh
+          </button>
 
           <button
             className={styles.syncBtn}
