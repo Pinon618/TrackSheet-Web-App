@@ -9,6 +9,7 @@ export const SupplierSchema = z.object({
   phone: z.string().optional(),
   countryRegion: z.string().optional(),
   notes: z.string().optional(),
+  creditBalance: z.number().nonnegative().default(0),
   isDeleted: z.boolean().default(false),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

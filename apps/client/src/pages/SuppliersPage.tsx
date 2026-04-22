@@ -40,16 +40,22 @@ export default function SuppliersPage() {
 
   // Compute per-supplier stats from order data
   const supplierStats = useMemo(() => {
-    const map = new Map<string, { orderCount: number; balanceDue: number }>();
+    const map = new Map<string, { orderCount: number; totalDue: number; overpay: number }>();
     for (const order of ordersData?.orders ?? []) {
-      const existing = map.get(order.supplier) ?? { orderCount: 0, balanceDue: 0 };
+      const existing = map.get(order.supplier) ?? { orderCount: 0, totalDue: 0, overpay: 0 };
       map.set(order.supplier, {
         orderCount: existing.orderCount + 1,
-        balanceDue: existing.balanceDue + order.balanceDue,
+        totalDue:   existing.totalDue + order.balanceDue,
+        overpay:    existing.overpay + Math.max(0, order.totalPaid - order.grandTotal),
       });
     }
     return map;
   }, [ordersData]);
+
+  const signedFmt = (n: number) =>
+    n > 0 ? `+$ ${n.toLocaleString()}`
+    : n < 0 ? `-$ ${Math.abs(n).toLocaleString()}`
+    : `$ 0`;
 
   // ── Mutations ─────────────────────────────────────────────────────────────────
   const saveMutation = useMutation({
@@ -237,6 +243,8 @@ export default function SuppliersPage() {
               )
               : suppliers.map((s) => {
                 const stats = supplierStats.get(s.name);
+                const credit = (s.creditBalance ?? 0) + (stats?.overpay ?? 0);
+                const net = credit - (stats?.totalDue ?? 0);
                 return (
                   <tr key={s._id}>
                     <td className={styles.nameCell}>{s.name}</td>
@@ -244,8 +252,8 @@ export default function SuppliersPage() {
                     <td>{s.phone ?? "—"}</td>
                     <td>{s.countryRegion ?? "—"}</td>
                     <td className={styles.num}>{stats?.orderCount ?? 0}</td>
-                    <td className={`${styles.num} ${(stats?.balanceDue ?? 0) > 0 ? styles.red : styles.green}`}>
-                      $ {(stats?.balanceDue ?? 0).toLocaleString()}
+                    <td className={`${styles.num} ${net < 0 ? styles.red : net > 0 ? styles.green : ""}`}>
+                      {signedFmt(net)}
                     </td>
                     <td>
                       <div className={styles.actions}>

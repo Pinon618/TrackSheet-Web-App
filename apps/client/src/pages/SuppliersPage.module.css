@@ -36,3 +36,7 @@
 .btnDelete:hover { background: #f871711a; }
 .btnDelete:disabled { opacity: 0.4; cursor: not-allowed; }
 .muted { color: #475569; font-size: 0.875rem; }
+.num     { text-align: right; font-variant-numeric: tabular-nums; }
+.numHead { text-align: right; }
+.red     { color: #f87171; font-weight: 600; }
+.green   { color: #4ade80; font-weight: 600; }

@@ -105,7 +105,7 @@ export default function PaymentsPage() {
       setBulkForm({ ...EMPTY_BULK });
       setBulkErrors({});
       const msg = result.surplus > 0
-        ? `$${result.totalApplied.toLocaleString()} applied. $${result.surplus.toLocaleString()} surplus (no more due orders).`
+        ? `$${result.totalApplied.toLocaleString()} applied. +$${result.surplus.toLocaleString()} credited to supplier.`
         : `$${result.totalApplied.toLocaleString()} distributed across ${result.payments.length} order(s).`;
       addToast(msg, "success");
     },

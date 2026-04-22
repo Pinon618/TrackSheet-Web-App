@@ -59,6 +59,7 @@ export default function DashboardPage() {
     let grandTotal = 0;
     let paid = 0;
     let balanceDue = 0;
+    let orderOverpay = 0;
 
     for (const o of orders) {
       totalBoxes  += calcTotalBoxes(o.packs, o.totalBoxes);
@@ -69,26 +70,48 @@ export default function DashboardPage() {
       grandTotal  += o.grandTotal;
       paid        += o.totalPaid;
       balanceDue  += o.balanceDue;
+      orderOverpay += Math.max(0, o.totalPaid - o.grandTotal);
     }
 
-    return { totalBoxes, totalUnits, productValue, shipping, packaging, grandTotal, paid, balanceDue };
-  }, [orders]);
+    const supplierCredit = (suppliers ?? []).reduce(
+      (sum, s) => sum + (s.creditBalance ?? 0),
+      0
+    );
+    const netBalance = supplierCredit + orderOverpay - balanceDue;
+
+    return { totalBoxes, totalUnits, productValue, shipping, packaging, grandTotal, paid, balanceDue, netBalance };
+  }, [orders, suppliers]);
 
   // ── Supplier breakdown ─────────────────────────────────────────────────────
   const supplierBreakdown = useMemo(() => {
-    const map = new Map<string, { orders: number; grandTotal: number; paid: number; due: number }>();
+    type Row = { orders: number; grandTotal: number; paid: number; due: number; overpay: number };
+    const map = new Map<string, Row>();
     for (const o of orders) {
-      const entry = map.get(o.supplier) ?? { orders: 0, grandTotal: 0, paid: 0, due: 0 };
+      const entry = map.get(o.supplier) ?? { orders: 0, grandTotal: 0, paid: 0, due: 0, overpay: 0 };
       entry.orders    += 1;
       entry.grandTotal += o.grandTotal;
       entry.paid       += o.totalPaid;
       entry.due        += o.balanceDue;
+      entry.overpay    += Math.max(0, o.totalPaid - o.grandTotal);
       map.set(o.supplier, entry);
     }
+    // Include suppliers with stored credit but no orders, so the credit is visible.
+    for (const s of suppliers ?? []) {
+      if (!map.has(s.name) && (s.creditBalance ?? 0) > 0) {
+        map.set(s.name, { orders: 0, grandTotal: 0, paid: 0, due: 0, overpay: 0 });
+      }
+    }
+    const creditByName = new Map<string, number>(
+      (suppliers ?? []).map((s) => [s.name, s.creditBalance ?? 0])
+    );
     return [...map.entries()]
-      .map(([name, v]) => ({ name, ...v }))
-      .sort((a, b) => b.due - a.due);
-  }, [orders]);
+      .map(([name, v]) => {
+        const credit = (creditByName.get(name) ?? 0) + v.overpay;
+        const net    = credit - v.due;
+        return { name, ...v, credit, net };
+      })
+      .sort((a, b) => a.net - b.net); // most owed (most negative) first
+  }, [orders, suppliers]);
 
   // ── Recent orders ──────────────────────────────────────────────────────────
   const recentOrders = useMemo(
@@ -97,6 +120,10 @@ export default function DashboardPage() {
   );
 
   const fmt = (n: number) => `$ ${n.toLocaleString()}`;
+  const signedFmt = (n: number) =>
+    n > 0 ? `+$ ${n.toLocaleString()}`
+    : n < 0 ? `-$ ${Math.abs(n).toLocaleString()}`
+    : `$ 0`;
 
   return (
     <div className={styles.page}>
@@ -185,7 +212,11 @@ export default function DashboardPage() {
             <StatCard label="Total Packaging"    value={fmt(stats.packaging)} />
             <StatCard label="Grand Total"        value={fmt(stats.grandTotal)} />
             <StatCard label="Total Paid"         value={fmt(stats.paid)}       accent="green" />
-            <StatCard label="Balance Due"        value={fmt(stats.balanceDue)} accent={stats.balanceDue > 0 ? "red" : undefined} />
+            <StatCard
+              label="Balance Due"
+              value={signedFmt(stats.netBalance)}
+              accent={stats.netBalance < 0 ? "red" : stats.netBalance > 0 ? "green" : undefined}
+            />
           </>
         )}
       </section>
@@ -262,7 +293,7 @@ export default function DashboardPage() {
                     <td>{s.orders}</td>
                     <td>{fmt(s.grandTotal)}</td>
                     <td className={styles.paid}>{fmt(s.paid)}</td>
-                    <td className={s.due > 0 ? styles.due : styles.paid}>{fmt(s.due)}</td>
+                    <td className={s.net < 0 ? styles.due : styles.paid}>{signedFmt(s.net)}</td>
                   </tr>
                 ))}
             </tbody>

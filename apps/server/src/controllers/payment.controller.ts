@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { PaymentModel } from "../models/Payment";
 import { OrderModel } from "../models/Order";
+import { SupplierModel } from "../models/Supplier";
 import { calcOrderFields } from "../lib/orderCalc";
 import { AppError } from "../middlewares/errorHandler";
 import type { CreatePaymentInput, UpdatePaymentInput, SupplierBulkPaymentInput } from "@tracksheet/shared";
@@ -141,16 +142,20 @@ export async function supplierBulkPayment(
   try {
     const body = req.body as SupplierBulkPaymentInput;
 
+    const supplier = await SupplierModel.findOne({
+      name: body.supplier,
+      isDeleted: false,
+    });
+    if (!supplier) {
+      throw new AppError(404, `Supplier '${body.supplier}' not found`);
+    }
+
     // Fetch all unpaid/partial orders for this supplier, oldest first
     const orders = await OrderModel.find({
       supplier: body.supplier,
       isDeleted: false,
       status: { $in: ["DUE", "PARTIAL"] },
     }).sort({ orderDate: 1, createdAt: 1 });
-
-    if (orders.length === 0) {
-      throw new AppError(404, `No outstanding orders found for supplier '${body.supplier}'`);
-    }
 
     let remaining = body.amount;
     const createdPayments: unknown[] = [];
@@ -174,6 +179,13 @@ export async function supplierBulkPayment(
       createdPayments.push(payment.toObject());
       await syncOrderTotals(order.invoiceSerial);
       remaining -= apply;
+    }
+
+    // Surplus becomes supplier credit — carried forward against future orders.
+    if (remaining > 0) {
+      await SupplierModel.findByIdAndUpdate(supplier._id, {
+        $inc: { creditBalance: remaining },
+      });
     }
 
     res.status(201).json({
