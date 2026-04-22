@@ -1,43 +1,22 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "../api/client";
+import { useQuery } from "@tanstack/react-query";
 import { getOrders, orderKeys } from "../api/orders";
 import { getSuppliers, supplierKeys } from "../api/suppliers";
 import { getBrands, brandKeys } from "../api/brands";
-import { paymentKeys } from "../api/payments";
 import { StatusBadge } from "../components/ui/Badge";
 import { SkeletonCard, SkeletonRow } from "../components/ui/Skeleton";
 import { calcTotalBoxes, calcTotalUnits } from "../api/orderCalcClient";
-import { useToast } from "../context/ToastContext";
 import type { Supplier } from "@tracksheet/shared";
 import styles from "./DashboardPage.module.css";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
-  const { addToast } = useToast();
 
   const { data: allOrderData, isLoading: loadingOrders } = useQuery({
     queryKey: orderKeys.list({ limit: 10000 }),
     queryFn:  () => getOrders({ limit: 10000 }),
   });
-
-  const syncMutation = useMutation({
-    mutationFn: async () => {
-      await apiClient.get("/orders/sync-all");
-    },
-    onSuccess: () => {
-      void qc.invalidateQueries(); // Invalidate EVERYTHING
-      addToast("All order totals recalculated and cache cleared", "success");
-    },
-    onError: (err: any) => addToast(err.message || "Sync failed", "error"),
-  });
-
-  function handleRefresh() {
-    void qc.invalidateQueries();
-    addToast("Data refreshed", "success");
-  }
 
   const { data: suppliers, isLoading: loadingSuppliers } = useQuery<Supplier[]>({
     queryKey: supplierKeys.list(),
@@ -94,14 +73,14 @@ export default function DashboardPage() {
       orderOverpay += Math.max(0, -o.balanceDue);
     }
 
-    const supplierCredit = (suppliers ?? []).reduce(
-      (sum, s) => sum + (s.creditBalance ?? 0),
-      0
-    );
+    const supplierCredit = (suppliers ?? [])
+      .filter(s => !filterSupplier || s.name === filterSupplier)
+      .reduce((sum, s) => sum + (s.creditBalance ?? 0), 0);
+
     const netBalance = supplierCredit + orderOverpay - balanceDue;
 
     return { totalBoxes, totalUnits, productValue, shipping, packaging, grandTotal, paid, balanceDue, netBalance };
-  }, [orders, suppliers]);
+  }, [orders, suppliers, filterSupplier]);
 
   // ── Supplier breakdown ─────────────────────────────────────────────────────
   const supplierBreakdown = useMemo(() => {
@@ -117,7 +96,11 @@ export default function DashboardPage() {
       map.set(o.supplier, entry);
     }
     // Include suppliers with stored credit but no orders, so the credit is visible.
+    // If a brand or date filter is active, we only show suppliers who have orders matching those filters.
+    const hasBrandOrDateFilter = !!(filterBrand || filterDateFrom || filterDateTo);
     for (const s of suppliers ?? []) {
+      if (filterSupplier && s.name !== filterSupplier) continue;
+      if (hasBrandOrDateFilter) continue; // Don't show "empty" credit-only rows if we are filtering by brand/date
       if (!map.has(s.name) && (s.creditBalance ?? 0) > 0) {
         map.set(s.name, { orders: 0, grandTotal: 0, paid: 0, due: 0, overpay: 0 });
       }
@@ -132,7 +115,7 @@ export default function DashboardPage() {
         return { name, ...v, credit, net };
       })
       .sort((a, b) => a.net - b.net); // most owed (most negative) first
-  }, [orders, suppliers]);
+  }, [orders, suppliers, filterSupplier]);
 
   // ── Recent orders ──────────────────────────────────────────────────────────
   const recentOrders = useMemo(
@@ -215,27 +198,6 @@ export default function DashboardPage() {
               Clear Filters
             </button>
           )}
-
-          <button
-            className={styles.syncBtn}
-            onClick={handleRefresh}
-            title="Refresh dashboard data"
-          >
-            Refresh
-          </button>
-
-          <button
-            className={styles.syncBtn}
-            onClick={() => {
-              if (confirm("Recalculate all order totals based on actual payment records? This fixes cases where 'Total Paid' doesn't match the list of payments.")) {
-                syncMutation.mutate();
-              }
-            }}
-            disabled={syncMutation.isPending}
-            title="Fix 'Total Paid' drift by re-scanning all payments"
-          >
-            {syncMutation.isPending ? "Syncing..." : "Recalculate Totals"}
-          </button>
         </div>
       </div>
 
@@ -245,7 +207,7 @@ export default function DashboardPage() {
           Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
         ) : (
           <>
-            <StatCard label="Total Orders"       value={allOrderData?.total ?? 0} />
+            <StatCard label="Total Orders"       value={orders.length} />
             <StatCard label="Total Suppliers"    value={suppliers?.length ?? 0} loading={loadingSuppliers} />
             <StatCard label="Total Boxes"        value={stats.totalBoxes} />
             <StatCard label="Total Units"        value={stats.totalUnits} />
